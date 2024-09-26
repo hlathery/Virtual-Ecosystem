@@ -3,7 +3,7 @@
 ## Contributers
 
 Hunter Lathery - hlathery@calpoly.edu  
-User 2 - email@calpoly.edu  
+Adam Cisneros - acisne32@calpoly.edu  
 User 3 - email@calpoly.edu
 
 ## Description
