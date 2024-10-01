@@ -4,7 +4,7 @@
 
 Hunter Lathery - hlathery@calpoly.edu  
 Adam Cisneros - acisne32@calpoly.edu  
-User 3 - email@calpoly.edu
+Elijah Villanueva - evilla31@calpoly.edu
 
 ## Description
 
