@@ -1,6 +1,6 @@
 # User Stories
 
-1.) As an environmentalist and a fan of city-management games, I would like to simulate the makings of a village/civilization whilst also studying the effects of major village decisions on village upkeep on surrounding ecosystems to keep the people of said village happy and healthy. 
+1.) As an environmentalist and a fan of city-management games, I would like to simulate the makings of a village/civilization whilst also studying the effects of major village decisions on village upkeep on surrounding ecosystems to keep the people of said village happy and healthy.
 
 2.) As an engineer, I want to optimize resources and make carefully considered decisions so that the human race can amplify and enhance the building of structures (ex: build houses as fast as possible with the least amount of labor/resources).
 
