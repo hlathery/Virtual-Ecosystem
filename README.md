@@ -1,4 +1,4 @@
-# Project name
+# Ecosystem Game
 
 ## Contributers
 
