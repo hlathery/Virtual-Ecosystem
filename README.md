@@ -1,4 +1,4 @@
-# Ecosystem Game
+# Virtual Ecosystem
 
 ## Contributers
 
