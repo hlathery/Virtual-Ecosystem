@@ -2,15 +2,16 @@
 
 ## User Expanding Village
 
-A user who favors expansion and increasing the population as soon as possible, wants to increase the amount of buildings to house villagers. 
-After a series of decisions that sends workers to forest mass amounts of trees over a span of a couple of years, the user now has ample amount of wood to build multiple buildings. 
-The user checks what they can buy with their resources by calling  `GET /catalog`. The user sees they can build 5 small homes with building_name “SMALL_HOME” for 10 wood each that’ll increase population by 10 each. 
+A user who favors expansion and increasing the population as soon as possible wants to increase the amount of buildings to house villagers. 
+After a series of decisions that sends workers to forest mass amounts of trees over a span of a couple of years, the user now has ample amounts of wood to build multiple buildings. 
+The user checks what they can buy with their resources by calling  `GET /catalog`. The user sees they can build 5 small homes with building_name `SMALL_HOME` for 10 wood each that’ll increase population by 10 each. 
 
-The user initializes the building of 5 SMALL_HOMES and makes the following requests:
+The user initializes the building of 5 `SMALL_HOMES` and makes the following requests:
 
-- Start by making a `POST expansion/plan` which assigns each new building with a unique 
-- After letting a year cycle run (it takes a year to build said buildings) the user makes a GET village/buildings/ to see the new
-village structure
+- Start by making a `POST expansion/plan` which assigns each new building with a unique building id and queues in the plan for new buildings to be placed the next cycle
+- After letting a year cycle run (it takes a year to build said buildings) the user makes a `GET village/buildings/` to see the new
+village structures
+- The user sends a `GET village/buildings/{building_id}/` for each building to see how many villagers live in the building and who lives there, identified by `villager_id `
 
 ## User Managing Ecosystem
 
