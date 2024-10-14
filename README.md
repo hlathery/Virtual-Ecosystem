@@ -5,6 +5,7 @@
 Hunter Lathery - hlathery@calpoly.edu  
 Adam Cisneros - acisne32@calpoly.edu  
 Elijah Villanueva - evilla31@calpoly.edu
+David Weaver - dwweaver@calpoly.edu
 
 ## Description
 
