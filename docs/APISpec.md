@@ -97,6 +97,6 @@ The user would return back new values, if any, of how many villagers they want i
 
 Methods which will allow major resets and such.
 
-### 5.1. `admin/reset` (POST)
+### 5.1. `admin/reset` (PUT)
 
 Resets all data in user inventory, village, and ecosystem to default values.
