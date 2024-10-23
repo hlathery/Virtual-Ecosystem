@@ -76,8 +76,7 @@ to build based upon available resources.
 
 ### 3.2. `expansion/plan` (POST)
 
-The call passes in a catalog of building types and the amount of each building is available to build based 
-upon available resources. The user would return back each building type they want to build
+The user passes in each building type they want to build
 and how many of each type.
 
 
