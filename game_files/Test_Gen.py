@@ -4,10 +4,10 @@ from Util import *
 
 
 def test_generate_world(weights, random_seed):
-    world_drawer = WorldDrawer()
     world = World(WORLD_X, WORLD_Y, random_seed)
     tile_map = world.get_tiled_map(weights)
-    world_drawer.draw(tile_map, wait_for_key = True)
+    world_drawer = WorldDrawer(tile_map)
+    world_drawer.draw()
 
 
 def test_emerge(target_weights, random_seed):
@@ -18,7 +18,7 @@ def test_emerge(target_weights, random_seed):
 
     while not done:
         tile_map = world.get_tiled_map(weights)
-        world_drawer.draw(tile_map, wait_for_key = False)
+        world_drawer.draw(tile_map)
 
         if weights[OCEAN3] < target_weights[OCEAN3]:
             weights[OCEAN3] += 1
@@ -40,7 +40,7 @@ def test_emerge(target_weights, random_seed):
 
     while not done:
         tile_map = world.get_tiled_map(weights)
-        world_drawer.draw(tile_map, wait_for_key = False)
+        world_drawer.draw(tile_map)
 
         if weights[FOREST] >= target_weights[FOREST] and weights[FOREST] > 0:
             weights[FOREST] -= 1

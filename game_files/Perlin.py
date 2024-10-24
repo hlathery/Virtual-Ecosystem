@@ -8,4 +8,3 @@ WEIGHTS = [20, 15, 15, 15, 50, 50]     # Lakes
 
 rand_seed = random.randint(0,1000)
 test_generate_world(WEIGHTS, random_seed = rand_seed)
-test_emerge(WEIGHTS, random_seed = rand_seed)
