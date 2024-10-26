@@ -1,102 +1,365 @@
 # API Specification for Virtual Ecosystem
 
-## 1. Village Info
+## 1. Village
 
-Provides the user with information regarding the status of their villagers, village resources, etc.
+All API calls for entities of the village.
 
-### 1.1. `village/` (GET)
+### 1 /Village/ (GET) <--- Village overview 
 
-Returns a general overview of village characteristics such as: Jobs with how many villagers
-are in each one, inventory items and how much of each item you have, and 
-the types of buildings you have along with how much of each type you have.
+Response: 
+
+{ 
+
+“num_buildings”: int,  
+
+“num_villagers”: int, 
+
+“storage.amount”: int 
+
+} 
 
 ### 1.2. `village/villagers/` (GET)
 
 Returns a list of all villagers with their respective attributes.
 
-### 1.3. `village/villagers/{villager_id}` (GET)
+### 1.3. /new_villager/ (POST) <--- Creates a new villager, unassigned 
 
-Accepts a specific villager id as input and gets their job and age.
+Request: 
+[{ 
 
-### 1.4. `village/inventory` (GET)
+“Name”:  string, 
 
-Returns a list of all village resources and how much of that resource is available.
+“ID”: int, 
 
-### 1.5. `village/inventory/{resource_id}` (GET)
+“age”: int, 
 
-Accepts a resource id and returns how much of that item is in the inventory.
+“nourishment”: string 
 
-### 1.6. `village/buildings/` (GET)
+}] 
 
-Returns an overview of the types of buildings (Farm, Mine, House) you 
-have and how much of each type you have and how many villagers are in each type.
+Response:  
 
-### 1.7. `village/buildings/{building_id}` (GET)
+{“success”: boolean} 
 
-Accepts a building id (which refers to a type of building) and returns 
-how many villagers are working in that building type.
+### 1.4. Village/villagers_all/ (GET)  <--- returns all villagers across the village 
+
+Response: 
+
+[{ 
+
+“ID”: int, 
+
+“Name”: string, 
+
+“age”: int, 
+
+“nourishment”: string, 
+
+“job_id”: int, 
+
+“building_id”: int 
+
+}] 
+
+### 1.5. Village/buildings/villagers (GET) <--- returns all villagers in a building 
+
+Request: 
+
+{“building_id”: int} 
+
+ 
+
+Response: 
+
+[{ 
+
+“villager.ID”: int, 
+
+“villager. Name”: string, 
+
+“villager. age”: int, 
+
+“villager. nourishment”: string, 
+
+“villager. job_id”: int, 
+
+}] 
+
+AND 
+
+The total number of villagers 
+
+### 1.6. Village/assign_villager/ (PUT) <--- assigns villager job and building 
+
+Request: 
+
+[{ 
+
+“villager.ID”: int  
+
+}] 
+
+Response: 
+
+[{ 
+
+“villager_ID”: int, 
+
+“villager_job_id”: int, 
+
+“villager_building_id”: int 
+
+}] 
+
+### 1.7. /village/build_building/ (POST) 
+
+Request: 
+
+[{ 
+
+“resource_name”: string, 
+
+“amount”: int 
+
+“building_id”: int 
+
+ 
+
+}] 
+
+Response: 
+
+{“success”: boolean} 
+
+### 1.8. /village/fill_inventory/ (PUT) <--- fill inventory of specific building
+
+Request: 
+
+[{ 
+
+“building_storage_id”: int, 
+
+“resource_name”: string, 
+
+“amount”: int 
+
+}] 
+
+Response: 
+
+{“success”: boolean} 
+
+### 1.9 /village/building_inventory/ (GET) <--- gets inventory of that specific building 
+
+Request: 
+
+{“building_id”: int} 
+
+Response: 
+
+[{ 
+
+“resource_name”: string, 
+
+“amount”: int 
+
+}] 
+
+### 1.9.1 /village/village_inventory/ (GET) <--- gets inventory across all buildings 
+Response: 
+
+[{ 
+
+“resource_name”: string, 
+
+“amount”: int 
+
+}] 
 
 
-## 2. Ecological Info
+## 2. Eco
 
-Provides the user with information regarding the state of certain ecological entities.
+All API calls for the ecosystem.
 
-### 2.1. `eco/` (GET)
+### 2.1. /eco/grow_trees/ (PUT) <--- used for planting seeds
 
-Returns a general overview of the ecosystem and its characteristics such as: predators and prey and 
-how many there are, the characteristics of each body of water and their id, plants and 
-how many there are, resources (trees for wood, mine shafts for mining, etc.).
+Request: 
 
-### 2.2. `eco/life/predators/ ` (GET)
+[{ 
 
-Returns how many predators there are in the surrounding ecosystem.
+“resource_name": string (takes seeds) 
+
+“amount”: int, 
+
+“biome_id”: int 
+
+}] 
+
+Response: 
+
+{“success”: boolean} 
+
+### 2.2. /eco/trees/ (GET)  
+
+Response: 
+
+[{ 
+
+“plant_id”: int, 
+
+“amount”: int 
+
+}] 
 
 ### 2.3. `eco/life/prey/` (GET)
 
-Returns how much prey there is in the surrounding ecosystem.
+Response: 
 
-### 2.4. `eco/life/plants/` (GET)
+[{ 
 
-Returns how many plants there are in the surrounding ecosystem.
+“plant_id”: int, 
 
-### 2.5. `eco/resources/{body_id}/` (GET)
+“amount”: int 
 
-Accepts a body id (referring to a specific body of water) and returns the 
-water level and dryness of the area.
+}] 
 
+### 2.4. /eco/grow_plants/ (PUT) <--- used for planting seeds 
 
-## 3. Expansion 
+Request: 
 
-Methods which will allow the user to expand their village.
+[{ 
 
-### 3.1. `expansion/catalog` (GET)
+“resource_name": string (takes seeds) 
 
-Returns building types and the amount of each building is available 
-to build based upon available resources.
+“amount”: int, 
 
-### 3.2. `expansion/plan` (POST)
+“biome_id”: int 
 
-The user passes in each building type they want to build
-and how many of each type.
+}] 
 
+Response: 
 
-## 4. Assignments
+{“success”: boolean} 
 
-Methods which will allow the user to assign certain tasks and jobs to villagers.
+/eco/plants/ (GET)  
 
-### 4.1. `assignments/` (GET)
+Response: 
 
-Returns a list of all jobs and the amount of active workers at each job. 
+[{ 
 
-### 4.2. `assignments/plan` (POST)
+“plant_id”: int, 
 
-The call passes in a catalog of each job type and how many villagers are working in each job type. 
-The user would return back new values, if any, of how many villagers they want in each job.
+“amount”: int 
 
-## 5. Admin
+}] 
 
-Methods which will allow major resets and such.
+### 2.5. /eco/grab_water/ (PUT) <--- villagers will collect water as needed 
 
-### 5.1. `admin/reset` (PUT)
+Request: 
 
-Resets all data in user inventory, village, and ecosystem to default values.
+[{ 
+
+“water_id”: int, // (which water source it came from) 
+
+“amount”: int, 
+
+“nourishment”: string, // (how clean is this water?) 
+
+“biome_id”: int 
+
+}] 
+
+ 
+Response: 
+
+{“success”: boolean} 
+
+### 2.6 /eco/spawn_prey/ (POST) <--- spawning prey to a specific biome, worth noting this call can also reduce the number of prey (maybe they died due to nourshiment or killed off by hunters/predators 
+
+Request: 
+
+[{ 
+
+“prey_id”: int, 
+
+“nourishment”: string, 
+
+“amount”: int, 
+
+“biome_id”: int 
+
+}] 
+
+Response: 
+
+{“success”: boolean} 
+
+### 2.7 /eco/prey/ (GET) <--- grabbing prey given a specific biome
+
+Request: 
+
+[{ 
+
+“biome_id”: int 
+
+}] 
+
+Response: 
+
+[{ 
+
+“prey_id”: int, 
+
+“amount”: int 
+
+}] 
+
+### 2.8 /eco/spawn_predator/ (POST) <--- spawning predator to a specific biome, worth noting this call can also reduce the number of prey (maybe they died due to nourshiment or killed off by hunters/predators 
+
+Request: 
+
+[{ 
+
+“predator_id”: int, 
+
+“nourishment”: string, 
+
+“amount”: int, 
+
+“biome_id”: int 
+
+}] 
+
+Response: 
+
+{“success”: boolean} 
+
+### 2.9 /eco/ predator/ (GET) <--- grabbing predator given a specific biome 
+
+Request: 
+
+[{ 
+
+“biome_id”: int 
+
+}] 
+
+Response: 
+
+[{ 
+
+“predator_id”: int, 
+
+“amount”: int 
+
+}] 
+
+## 3. Admin
+
+Used for resseting the game
+
+### 3.1. /admin/reset (PUT) <--- resets everything to original start of the game state 
+
+Response: 
+
+{“success”: boolean} 
