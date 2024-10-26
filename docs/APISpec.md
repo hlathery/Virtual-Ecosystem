@@ -4,362 +4,380 @@
 
 All API calls for entities of the village.
 
-### 1 /Village/ (GET) <--- Village overview 
+### 1.1 Village Overview - `/village/` (GET)
+Returns an overview of the village
 
-Response: 
+**Response:**
 
-{ 
+```json
+[
+    { 
+        "num_buildings": "int",  
+        "num_villagers": "int", 
+        "storage_amount": "int" 
+    } 
+]
+```
 
-“num_buildings”: int,  
+### 1.2. Create villager - `/new_villager/` (POST)
+Creates a new villager, unassigned 
 
-“num_villagers”: int, 
+**Request:** 
+```json
+[
+    { 
+        "name":  "string", 
+        "id": "int", 
+        "age": "int",
+        "nourishment": "string" 
+    }
+] 
+```
 
-“storage.amount”: int 
+**Response:**  
 
-} 
+```json
+    {
+        "success": "boolean"
+    }
+``` 
 
-### 1.2. `village/villagers/` (GET)
-
+### 1.3. All villagers - `village/villagers_all/` (GET) 
 Returns a list of all villagers with their respective attributes.
 
-### 1.3. /new_villager/ (POST) <--- Creates a new villager, unassigned 
-
-Request: 
-[{ 
-
-“Name”:  string, 
-
-“ID”: int, 
-
-“age”: int, 
-
-“nourishment”: string 
-
-}] 
-
-Response:  
-
-{“success”: boolean} 
-
-### 1.4. Village/villagers_all/ (GET)  <--- returns all villagers across the village 
-
-Response: 
-
-[{ 
-
-“ID”: int, 
-
-“Name”: string, 
-
-“age”: int, 
-
-“nourishment”: string, 
-
-“job_id”: int, 
-
-“building_id”: int 
-
-}] 
-
-### 1.5. Village/buildings/villagers (GET) <--- returns all villagers in a building 
-
-Request: 
-
-{“building_id”: int} 
-
- 
-
-Response: 
-
-[{ 
-
-“villager.ID”: int, 
-
-“villager. Name”: string, 
-
-“villager. age”: int, 
-
-“villager. nourishment”: string, 
-
-“villager. job_id”: int, 
-
-}] 
-
-AND 
-
-The total number of villagers 
-
-### 1.6. Village/assign_villager/ (PUT) <--- assigns villager job and building 
-
-Request: 
-
-[{ 
-
-“villager.ID”: int  
-
-}] 
-
-Response: 
-
-[{ 
-
-“villager_ID”: int, 
-
-“villager_job_id”: int, 
-
-“villager_building_id”: int 
-
-}] 
-
-### 1.7. /village/build_building/ (POST) 
-
-Request: 
-
-[{ 
-
-“resource_name”: string, 
-
-“amount”: int 
-
-“building_id”: int 
-
- 
-
-}] 
-
-Response: 
-
-{“success”: boolean} 
-
-### 1.8. /village/fill_inventory/ (PUT) <--- fill inventory of specific building
-
-Request: 
-
-[{ 
-
-“building_storage_id”: int, 
-
-“resource_name”: string, 
-
-“amount”: int 
-
-}] 
-
-Response: 
-
-{“success”: boolean} 
-
-### 1.9 /village/building_inventory/ (GET) <--- gets inventory of that specific building 
-
-Request: 
-
-{“building_id”: int} 
-
-Response: 
-
-[{ 
-
-“resource_name”: string, 
-
-“amount”: int 
-
-}] 
-
-### 1.9.1 /village/village_inventory/ (GET) <--- gets inventory across all buildings 
-Response: 
-
-[{ 
-
-“resource_name”: string, 
-
-“amount”: int 
-
-}] 
-
+**Response:** 
+
+```json
+[
+    { 
+        "id": "int", 
+        "name": "string", 
+        "age": "int", 
+        "nourishment": "string", 
+        "job_id": "int", 
+        "building_id": "int" 
+    }
+]
+```
+
+### 1.4. Villagers in building - `village/buildings/villagers` (GET) 
+Returns all villagers in a building
+
+**Request:**
+
+```json
+{
+    "building_id": "int"
+} 
+```
+
+**Response:** 
+
+```json
+[
+    { 
+        "villager_id": "int", 
+        "villager_name": "string", 
+        "villager_age": "int", 
+        "villager_nourishment": "string", 
+        "villager_job_id": "int", 
+    }
+]
+```  
+
+### 1.5. Assign job - `village/assign_villager/` (PUT)
+
+**Request:** 
+
+```json
+[
+    { 
+        "villager_id": "int"  
+    }
+]
+``` 
+
+**Response:** 
+
+```json
+[
+    { 
+        "villager_id": "int", 
+        "villager_job_id": "int", 
+        "villager_building_id": "int" 
+    }
+]
+``` 
+
+### 1.6. Build structure - `/village/build_building/` (POST) 
+
+**Request:** 
+
+```json
+[
+    { 
+        "resource_name": "string", 
+        "amount": "int",
+        "building_id": "int" 
+    }
+]
+``` 
+
+**Response:**
+
+```json
+{
+    "success": "boolean"
+}
+``` 
+
+### 1.7. Adjust storage `/village/fill_inventory/` (PUT) 
+Fill inventory of specific building
+
+**Request:** 
+
+```json
+[
+    { 
+        "building_storage_id": "int", 
+        "resource_name": "string", 
+        "amount": "int" 
+    }
+]
+```
+
+**Response:** 
+
+```json
+{
+    "success": "boolean"
+}
+``` 
+
+### 1.8. View building inventory - `/village/building_inventory/` (GET)
+Gets inventory of specific building  
+
+**Request:** 
+
+```json
+{
+    "building_id": "int"
+}
+``` 
+
+**Response:** 
+
+```json
+[
+    { 
+        "resource_name": "string", 
+        "amount": "int" 
+    }
+]
+``` 
+
+### 1.9. View village inventory `/village/village_inventory/` (GET) 
+Gets inventory across all buildings
+
+**Response:** 
+
+```json
+[
+    { 
+        "resource_name": "string", 
+        "amount": "int" 
+    }
+] 
+```
 
 ## 2. Eco
 
 All API calls for the ecosystem.
 
-### 2.1. /eco/grow_trees/ (PUT) <--- used for planting seeds
+### 2.1. Plant seed - `/eco/grow_plants/` (PUT)
+Allows the user to plant seeds for trees and plants
 
-Request: 
+**Request:** 
 
-[{ 
+```json
+[
+    { 
+        "resource_name": "string", 
+        "amount": "int", 
+        "biome_id": "int" 
+    }
+]
+```
 
-“resource_name": string (takes seeds) 
+**Response:** 
 
-“amount”: int, 
+```json
+{
+    "success": "boolean"
+}
+``` 
 
-“biome_id”: int 
+### 2.2. View plants - `/eco/trees/` (GET)  
 
-}] 
+**Response:** 
 
-Response: 
+```json
+[
+    { 
+        "plant_id": "int", 
+        "amount": "int" 
+    }
+]
+``` 
 
-{“success”: boolean} 
-
-### 2.2. /eco/trees/ (GET)  
-
-Response: 
-
-[{ 
-
-“plant_id”: int, 
-
-“amount”: int 
-
-}] 
-
-### 2.3. `eco/life/prey/` (GET)
-
-Response: 
-
-[{ 
-
-“plant_id”: int, 
-
-“amount”: int 
-
-}] 
-
-### 2.4. /eco/grow_plants/ (PUT) <--- used for planting seeds 
-
-Request: 
-
-[{ 
-
-“resource_name": string (takes seeds) 
-
-“amount”: int, 
-
-“biome_id”: int 
-
-}] 
+### 2.3. View prey -`eco/life/prey/` (GET)
+View overall prey(?)
 
 Response: 
 
-{“success”: boolean} 
+```json
+[
+    { 
+        "prey_id": "int", 
+        "amount": "int" 
+    }
+] 
+```
 
-/eco/plants/ (GET)  
+### 2.4. Collect water - `/eco/grab_water/` (PUT) 
 
-Response: 
+Allows user to collect water as needed for village
 
-[{ 
+**Request:** 
 
-“plant_id”: int, 
+```json
+[
+    { 
+        "water_id": "int", // (which water source it came from) 
+        "amount": "int", 
+        "nourishment": "string", // (how clean is this water?) 
+        "biome_id": "int" 
+    }
+] 
+```
 
-“amount”: int 
+**Response:** 
 
-}] 
+```json
+{
+    "success": "boolean"
+}
+``` 
 
-### 2.5. /eco/grab_water/ (PUT) <--- villagers will collect water as needed 
+### 2.5. Spawn prey - `/eco/spawn_prey/` (POST)
+Spawning prey to a specific biome, worth noting this call can also reduce 
+the number of prey (maybe they died due to nourshiment or killed off by hunters/predators) 
 
-Request: 
+**Request:** 
 
-[{ 
+```json
+[
+    { 
+        "prey_id": "int", 
+        "nourishment": "string", 
+        "amount": "int", 
+        "biome_id": "int" 
+    }
+]
+``` 
 
-“water_id”: int, // (which water source it came from) 
+**Response:** 
 
-“amount”: int, 
+```json
+{
+    "success": "boolean"
+}
+``` 
 
-“nourishment”: string, // (how clean is this water?) 
+### 2.6. View prey in biome -`/eco/prey/` (GET)
+Grabbing prey given a specific biome
 
-“biome_id”: int 
+**Request:** 
 
-}] 
+```json
+[
+    { 
+        "biome_id": "int" 
+    }
+]
+``` 
 
- 
-Response: 
+**Response:** 
 
-{“success”: boolean} 
+```json
+[
+    { 
+        "prey_id": "int", 
+        "amount": "int" 
+    }
+]
+``` 
 
-### 2.6 /eco/spawn_prey/ (POST) <--- spawning prey to a specific biome, worth noting this call can also reduce the number of prey (maybe they died due to nourshiment or killed off by hunters/predators 
+### 2.7. Spawn predator -`/eco/spawn_predator/` (POST)
+Spawning predator to a specific biome, worth noting this call can also reduce
+the number of prey (maybe they died due to nourshiment or killed off by hunters/predators)
 
-Request: 
+**Request:** 
 
-[{ 
+```json
+[
+    { 
+        "predator_id": "int", 
+        "nourishment": "string", 
+        "amount": "int", 
+        "biome_id": "int" 
+    }
+]
+```
 
-“prey_id”: int, 
+**Response:** 
 
-“nourishment”: string, 
+```json
+{
+    "success": "boolean"
+}
+``` 
 
-“amount”: int, 
+### 2.8. View predators - `/eco/predator/` (GET)
+View total amount predators in a specific biome 
 
-“biome_id”: int 
+**Request:** 
 
-}] 
+```json
+[
+    { 
+        "biome_id": "int" 
+    }
+]
+```
 
-Response: 
+**Response:** 
 
-{“success”: boolean} 
-
-### 2.7 /eco/prey/ (GET) <--- grabbing prey given a specific biome
-
-Request: 
-
-[{ 
-
-“biome_id”: int 
-
-}] 
-
-Response: 
-
-[{ 
-
-“prey_id”: int, 
-
-“amount”: int 
-
-}] 
-
-### 2.8 /eco/spawn_predator/ (POST) <--- spawning predator to a specific biome, worth noting this call can also reduce the number of prey (maybe they died due to nourshiment or killed off by hunters/predators 
-
-Request: 
-
-[{ 
-
-“predator_id”: int, 
-
-“nourishment”: string, 
-
-“amount”: int, 
-
-“biome_id”: int 
-
-}] 
-
-Response: 
-
-{“success”: boolean} 
-
-### 2.9 /eco/ predator/ (GET) <--- grabbing predator given a specific biome 
-
-Request: 
-
-[{ 
-
-“biome_id”: int 
-
-}] 
-
-Response: 
-
-[{ 
-
-“predator_id”: int, 
-
-“amount”: int 
-
-}] 
+```json
+[
+    { 
+        "predator_id": "int", 
+        "amount": "int" 
+    }
+] 
+```
 
 ## 3. Admin
 
 Used for resseting the game
 
-### 3.1. /admin/reset (PUT) <--- resets everything to original start of the game state 
+### 3.1. Reset World - `/admin/reset` (PUT) 
+Resets everything to original start of the game state 
 
-Response: 
+**Response:** 
 
-{“success”: boolean} 
+```json
+{
+    "success": "boolean"
+}
+``` 
