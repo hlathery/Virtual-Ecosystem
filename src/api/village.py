@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from src.api import auth
+import sqlalchemy
 from src import database as db
 
 router = APIRouter(
@@ -20,12 +21,26 @@ class Villagers(BaseModel):
 @router.post("/")
 def get_village_overview():
     """
-    Returns a general overview of village characteristics such as: Jobs with how many villagers are in each one, 
-    inventory items and how much of each item you have, 
-    and the types of buildings you have along with how much of each type you have.
+    Returns a general overview of village characteristics and villagers
     """
+    with db.engine.begin() as connection:
+        query = """
+                    SELECT 
+                        COUNT(DISTINCT buildings.id) AS num_buildings, 
+                        SUM(storage.quantity) AS storage_amount
+                    FROM buildings
+                    LEFT JOIN storage ON storage.building_id = buildings.id
+                """
+        villager_count = connection.execute(sqlalchemy.text("SELECT COUNT(villagers.id) AS num_villagers FROM villagers")).fetchone()
+        result = connection.execute(sqlalchemy.text(query)).fetchone()
 
-    return "OK"
+    return [
+                { 
+                    "num_buildings": result.num_buildings,  
+                    "num_villagers": villager_count.num_villagers, 
+                    "storage_amount": result.storage_amount
+                } 
+            ]
 
 
 @router.post("/villagers")
