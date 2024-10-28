@@ -4,19 +4,17 @@
 
 All API calls for entities of the village.
 
-### 1.1 Village Overview - `/village/` (GET)
+### 1.1. Village Overview - `/village/` (GET)
 Returns an overview of the village
 
 **Response:**
 
 ```json
-[
     { 
         "num_buildings": "int",  
         "num_villagers": "int", 
         "storage_amount": "int" 
     } 
-]
 ```
 
 ### 1.2. Create villager - `/new_villager/` (POST)
@@ -85,31 +83,7 @@ Returns all villagers in a building
 ]
 ```  
 
-### 1.5. Assign job - `village/assign_villager/` (PUT)
-
-**Request:** 
-
-```json
-[
-    { 
-        "villager_id": "int"  
-    }
-]
-``` 
-
-**Response:** 
-
-```json
-[
-    { 
-        "villager_id": "int", 
-        "villager_job_id": "int", 
-        "villager_building_id": "int" 
-    }
-]
-``` 
-
-### 1.6. Build structure - `/village/build_building/` (POST) 
+### 1.5. Build structure - `/village/build_building/` (POST) 
 
 **Request:** 
 
@@ -131,8 +105,8 @@ Returns all villagers in a building
 }
 ``` 
 
-### 1.7. Adjust storage `/village/fill_inventory/` (PUT) 
-Fill inventory of specific building
+### 1.6. Adjust storage `/village/fill_inventory/` (PUT) 
+Fill inventory of specific building(s)
 
 **Request:** 
 
@@ -154,7 +128,7 @@ Fill inventory of specific building
 }
 ``` 
 
-### 1.8. View building inventory - `/village/building_inventory/` (GET)
+### 1.7. View building inventory - `/village/building_inventory/` (GET)
 Gets inventory of specific building  
 
 **Request:** 
@@ -176,7 +150,7 @@ Gets inventory of specific building
 ]
 ``` 
 
-### 1.9. View village inventory `/village/village_inventory/` (GET) 
+### 1.8. View village inventory `/village/village_inventory/` (GET) 
 Gets inventory across all buildings
 
 **Response:** 
@@ -233,7 +207,7 @@ Allows the user to plant seeds for trees and plants
 ### 2.3. View prey -`eco/life/prey/` (GET)
 View overall prey(?)
 
-Response: 
+**Response:** 
 
 ```json
 [
@@ -367,11 +341,53 @@ View total amount predators in a specific biome
 ] 
 ```
 
-## 3. Admin
+## 3. Assignments
+
+Used for assigning jobs
+
+### 3.1. Get job list - `assignments/get_job_list` (GET)
+
+**Response:**
+
+```json
+[
+    {
+        "job_title" : "string",
+        "villagers_assigned" : "int"
+    }
+]
+```
+
+### 3.2. Assign job - `assignments/assign_villager/` (PUT)
+
+**Request:** 
+
+```json
+[
+    { 
+        "villager_id": "int"  
+    }
+]
+``` 
+
+**Response:** 
+
+```json
+[
+    { 
+        "villager_id": "int", 
+        "villager_job_id": "int", 
+        "villager_building_id": "int" 
+    }
+]
+``` 
+
+
+## 4. Admin
 
 Used for resseting the game
 
-### 3.1. Reset World - `/admin/reset` (PUT) 
+### 4.1. Reset World - `/admin/reset` (PUT) 
 Resets everything to original start of the game state 
 
 **Response:** 
