@@ -8,9 +8,6 @@ router = APIRouter(
     tags=["expansion"],
     dependencies=[Depends(auth.get_api_key)],)
 
-with db.engine.begin() as connection:
-    result = connection.execute(sqlalchemy.text("SELECT quantity, resource_name FROM storage"))
-    print(result.fetchall())
 
 
 @router.get("/catalog")
@@ -19,17 +16,26 @@ def get_catalog():
     Returns building types and the amount of each building is available to build based upon available resources.
     """
 
-    return [
+    with db.engine.begin() as connection:
+        wood = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM storage WHERE resource_name = 'wood'")).fetchone()
+        result = connection.execute(sqlalchemy.text(f"SELECT buildings.name AS name, ({wood}/catalog.cost) AS quantity FROM buildings JOIN catalog ON buildings.id = catalog.building_id GROUP BY name"))
+
+    catalog = []
+    for row in result:
+        catalog.append(
             {
-                "Stuff": 5
+                "Building": row.name,
+                "Quantity": row.quantity
             }
-        ]
+        )
+    return catalog
 
 @router.get("/plan")
 def user_plan():
     """
     The user passes in each building type they want to build and how many of each type.
     """
+
     return "OK"
 
 

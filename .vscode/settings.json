@@ -1,0 +1,8 @@
+{
+    "cSpell.words": [
+        "fastapi"
+    ],
+    "python.analysis.extraPaths": [
+        "./src/api"
+    ]
+}
