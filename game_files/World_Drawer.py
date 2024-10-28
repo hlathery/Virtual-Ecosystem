@@ -1,7 +1,7 @@
 import pygame
 from Util import *
 import time
-import tkinter
+from assignments import *
 
 class WorldDrawer:
 
@@ -19,8 +19,6 @@ class WorldDrawer:
         self.wood = 100
         self.buildings = {"Houses":0, "Farms":0, "Hunter/Forager Huts":0, "Mines":0, "Lumber Mills":0}
         self.menu_options = ["Catalog", "Village Info", "Assignments", "Eco Info"]
-        self.jobs = ["Unemployed", "Farmer", "Hunter", "Forager", "Miner", "Lumberjack"]
-        self.employment = {"Unemployed":5, "Farmers":0, "Hunters":0, "Foragers":0, "Miners":0, "Lumberjacks":0}
         self.eco = {"Water Bodies":0, "Forests":0, "Grass":0, "Desert":0}
 
         # get images for all tiles for every terrain type
@@ -67,6 +65,7 @@ class WorldDrawer:
         x = 600
         y = 250
         option = "Catalog"
+        job_list = get_job_list()
         while menu:
             menu = pygame.Rect(x, y, 400, 500)
             pygame.draw.rect(self.display_surface, (0,0,0), menu)
@@ -114,32 +113,32 @@ class WorldDrawer:
                     self.draw_text(type, (255,255,255), x+5, y+55+((interval+height)*c))
                     self.draw_text(f"{num}", (255,255,255), x+375, y+55+((interval+height)*c))
                     c += 1
-                for type, num in self.employment.items():
-                    self.draw_text(type, (255,255,255), x+5, y+55+((interval+height)*c))
-                    self.draw_text(f"{num}", (255,255,255), x+375, y+55+((interval+height)*c))
+                for job in job_list:
+                    self.draw_text(job["job_title"], (255,255,255), x+5, y+55+((interval+height)*c))
+                    self.draw_text(f"{job['villagers_assigned']}", (255,255,255), x+375, y+55+((interval+height)*c))
                     c += 1
             elif option == "Assignments":
                 interval = 20
                 height = 20
                 c = 0
                 buttons = []
-                for type, num in self.employment.items():
-                    if type != "Unemployed":
+                for job in job_list:
+                    if job["job_title"] != "unassigned":
                         button = pygame.Rect(x, y+50+((interval+height)*c), 150, height)
                         buttons.append(button)
                         pygame.draw.rect(self.display_surface, (0,0,255), button)
-                        self.draw_text("Add "+type, (255,255,255), x+5, y+55+((interval+height)*c))
-                        self.draw_text(f"{num}", (255,255,255), x+375, y+55+((interval+height)*c))
+                        self.draw_text("Add "+job["job_title"], (255,255,255), x+5, y+55+((interval+height)*c))
+                        self.draw_text(f"{job['villagers_assigned']}", (255,255,255), x+375, y+55+((interval+height)*c))
                     else:
-                        self.draw_text(type, (255,255,255), x+5, y+55+((interval+height)*c))
-                        self.draw_text(f"{num}", (255,255,255), x+375, y+55+((interval+height)*c))
+                        self.draw_text(job["job_title"], (255,255,255), x+5, y+55+((interval+height)*c))
+                        self.draw_text(f"{job['villagers_assigned']}", (255,255,255), x+375, y+55+((interval+height)*c))
                     c += 1
-                for type, num in self.employment.items():
-                    if type != "Unemployed":
+                for job in job_list:
+                    if job["job_title"] != "unassigned":
                         button = pygame.Rect(x, y+50+((interval+height)*c), 150, height)
                         buttons.append(button)
                         pygame.draw.rect(self.display_surface, (0,0,255), button)
-                        self.draw_text("Remove "+type, (255,255,255), x+5, y+55+((interval+height)*c))
+                        self.draw_text("Remove "+job["job_title"], (255,255,255), x+5, y+55+((interval+height)*c))
                         c += 1
 
                 mx, my = pygame.mouse.get_pos()
@@ -151,11 +150,15 @@ class WorldDrawer:
                                 c += 1
                             k = list(self.employment)[c%(len(self.employment))]
                             if c < 6:
-                                self.employment[k] += 1
-                                self.employment["Unemployed"] -= 1
+                                job_list[k]["villagers_assigned"] += 1
+                                for job in job_list:
+                                    if job["job_title"] == "unassigned":
+                                        job["villagers_assigned"] -= 1
                             else:
-                                self.employment[k] -= 1
-                                self.employment["Unemployed"] += 1
+                                job_list[k]["villagers_assigned"] -= 1
+                                for job in job_list:
+                                    if job["job_title"] == "unassigned":
+                                        job["villagers_assigned"] += 1
                     c += 1
             else:
                 interval = 20
@@ -177,6 +180,8 @@ class WorldDrawer:
 
             click = False
             click, menu = self.wait_key()
+            if menu == False:
+                assign_villager(job_list)
 
     def cont(self):
         time.sleep(5)
