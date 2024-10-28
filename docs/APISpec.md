@@ -12,8 +12,7 @@ Returns an overview of the village
 ```json
     { 
         "num_buildings": "int",  
-        "num_villagers": "int", 
-        "storage_amount": "int" 
+        "num_villagers": "int"
     } 
 ```
 
@@ -74,11 +73,11 @@ Returns all villagers in a building
 ```json
 [
     { 
-        "villager_id": "int", 
-        "villager_name": "string", 
-        "villager_age": "int", 
-        "villager_nourishment": "string", 
-        "villager_job_id": "int", 
+        "id": "int", 
+        "name": "string", 
+        "age": "int", 
+        "nourishment": "string", 
+        "job_id": "int", 
     }
 ]
 ```  
@@ -317,7 +316,7 @@ the number of prey (maybe they died due to nourshiment or killed off by hunters/
 }
 ``` 
 
-### 2.8. View predators - `/eco/predator/` (GET)
+### 2.8. View predators - `/eco/predator/` (POST)
 View total amount predators in a specific biome 
 
 **Request:** 
@@ -365,7 +364,7 @@ Used for assigning jobs
 ```json
 [
     { 
-        "villager_id": "int"  
+        "villager_id": "int" 
     }
 ]
 ``` 
@@ -382,12 +381,27 @@ Used for assigning jobs
 ]
 ``` 
 
+## 4. Info
 
-## 4. Admin
+Grabs information about the game world
+
+### 4.1. Get Time - `/info/current_time` (GET)
+
+**Response:**
+
+```json
+{
+    "year" : "int",
+    "month" : "int",
+    "day" : "int"
+}
+```
+
+## 5. Admin
 
 Used for resseting the game
 
-### 4.1. Reset World - `/admin/reset` (PUT) 
+### 5.1. Reset World - `/admin/reset` (PUT) 
 Resets everything to original start of the game state 
 
 **Response:** 
