@@ -29,12 +29,10 @@ With the info gathered from these calls, they can make the informed changes with
 
 ## User Assigning Villager Jobs
 
-When a user realizes that their village's food source is beginning to dwindle, they find this by calling `GET village/inventory/`,which gives a list of village resources. 
-They realize that they need to assign villagers to hunt and gather food to keep their village alive. The user will call `GET village/villagers/` to see what villager_ids are available to be assigned.
-They then will call `GET assignments/` to see a list of available job_id’s, and if any are null, they can be assigned.
-After noticing there is a gardener and hunter spot available. They do the following:
+When a user realizes that their village's food source is beginning to dwindle, they find this by calling `GET village/inventory/`,which gives a list of village resources.
+They realize that they need to assign villagers to hunt and gather food to keep their village alive. The user will call `GET assignments/` to see a list of all jobs available and the amount of villagers in each.
+After noticing there is a low number of villagers in forager and hunter jobs. They do the following:
 
-- `POST assignments/plan`. And will then return the json for “gardener” under “job_name”, and 521 as an example villager_id under the int for villager_id
--  `POST assignments/plan`. And will then return the json for “hunter” under “job_name”, and 432 as an example villager_id under the int for villager_id 
+- `POST assignments/plan`. And the user will be prompted to return the json for the new amount of villagers in each job so they increase the amount of villagers in the "forager" and "hunter" jobs “villagers_assigned”, and the correct amount of villagers will be allocated to each job
 
 After this is completed, the villagers will successfully increase the amount of resources available to keep their villagers alive.
