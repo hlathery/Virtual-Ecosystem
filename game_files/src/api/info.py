@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from src import database as db
+from game_files.src import database as db
 
 router = APIRouter(
 )

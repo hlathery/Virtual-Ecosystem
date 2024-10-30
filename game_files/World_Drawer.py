@@ -1,6 +1,9 @@
 import pygame
 from Util import *
 import time
+import threading
+import requests
+from src.api import assignments
 class WorldDrawer:
 
     def __init__(self, height_map):
@@ -63,7 +66,7 @@ class WorldDrawer:
         x = 600
         y = 250
         option = "Catalog"
-        job_list = get_job_list()
+        job_list = assignments.get_job_list()
         while menu:
             menu = pygame.Rect(x, y, 400, 500)
             pygame.draw.rect(self.display_surface, (0,0,0), menu)
@@ -179,7 +182,7 @@ class WorldDrawer:
             click = False
             click, menu = self.wait_key()
             if menu == False:
-                assign_villager(job_list)
+                assignments.assign_villager(job_list)
 
     def cont(self):
         time.sleep(5)

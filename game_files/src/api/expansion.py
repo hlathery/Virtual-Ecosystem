@@ -1,7 +1,7 @@
 from fastapi import APIRouter,Depends
 import sqlalchemy
-from src import database as db
-from src.api import auth
+from game_files.src import database as db
+from game_files.src.api import auth
 
 router = APIRouter(
     prefix="/expansion",

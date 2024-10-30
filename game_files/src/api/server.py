@@ -1,7 +1,7 @@
 from fastapi import FastAPI, exceptions
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
-from src.api import admin, expansion, info, village,eco,assignments
+from game_files.src.api import admin, expansion, info, village,eco,assignments
 import json
 import logging
 

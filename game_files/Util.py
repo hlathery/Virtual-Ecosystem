@@ -1,4 +1,4 @@
-TILESHEET_PATH = "Assets/better-tileset.png"
+TILESHEET_PATH = "../Assets/better-tileset.png"
 SCREEN_HEIGHT = 900
 SCREEN_WIDTH = 1400
 FPS = 60
