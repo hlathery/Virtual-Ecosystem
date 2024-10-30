@@ -1,8 +1,6 @@
 import pygame
 from Util import *
 import time
-from assignments import *
-
 class WorldDrawer:
 
     def __init__(self, height_map):

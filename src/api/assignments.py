@@ -23,7 +23,7 @@ def get_job_list():
     """
 
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("SELECT jobs.id AS id, jobs.job_name AS name, COUNT(villagers.job_id) AS quantity FROM jobs JOIN villagers ON jobs.id = villagers.job_id GROUP BY jobs.id, job_name"))
+        result = connection.execute(sqlalchemy.text("SELECT jobs.id AS id, jobs.job_name AS name, COUNT(villagers.job_id) AS quantity FROM jobs LEFT JOIN villagers ON jobs.id = villagers.job_id GROUP BY jobs.id, job_name"))
 
     job_list = []
     for row in result:
@@ -45,8 +45,9 @@ def assign_villager(job_list: list[dict]):
     """
 
     with db.engine.begin() as connection:
+        connection.execute(sqlalchemy.text("UPDATE villagers SET job_id = 0"))
         for job in job_list:
             if job["villagers_assigned"] > 0:
-                connection.execute(sqlalchemy.text(f"UPDATE villagers SET job_id = {job['job_id']} WHERE id IN (SELECT id FROM (SELECT id FROM villagers ORDER BY id ASC LIMIT {job['villagers_assigned']}) tmp)"))
+                connection.execute(sqlalchemy.text(f"UPDATE villagers SET job_id = {job['job_id']} WHERE id IN (SELECT id FROM (SELECT id FROM villagers ORDER BY id ASC LIMIT {job['villagers_assigned']}) tmp) AND job_id = 0"))
 
     return "OK"
