@@ -1,0 +1,9 @@
+.vercel
+.venv
+venv
+.idea
+__pycache__
+/.env
+info.log
+.env
+*.pyc
