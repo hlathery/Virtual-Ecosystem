@@ -1,6 +1,10 @@
 import pygame
 from Util import *
 import time
+import threading
+import requests
+import json
+
 class WorldDrawer:
 
     def __init__(self, height_map):
@@ -13,11 +17,18 @@ class WorldDrawer:
 
         self.height_map = height_map
         self.font = pygame.font.SysFont(None, 20)
+        self.get_headers = {"accept": "application/json", "access_token": "hlath"}
+        self.post_headers = {"accept": "application/json", "access_token": "hlath", "Content-Type": "application/json"}
         self.building_types = ["House", "Farm", "Hunter/Forager", "Mine", "Lumber Mill"]
         self.wood = 100
         self.buildings = {"Houses":0, "Farms":0, "Hunter/Forager Huts":0, "Mines":0, "Lumber Mills":0}
         self.menu_options = ["Catalog", "Village Info", "Assignments", "Eco Info"]
         self.eco = {"Water Bodies":0, "Forests":0, "Grass":0, "Desert":0}
+
+        if __name__ == "__main__":
+            # Start FastAPI in a separate thread
+            fastapi_thread = threading.Thread(target=self.run_fastapi)
+            fastapi_thread.start()
 
         # get images for all tiles for every terrain type
         self.terrain_tiles = []
@@ -27,6 +38,8 @@ class WorldDrawer:
                 tile_types.append(self.tilesheet.subsurface((tile_pos[0], tile_pos[1], TILESIZE, TILESIZE)))
             self.terrain_tiles.append(tile_types)
 
+    def run_fastapi():
+        import main
 
     def draw(self):
         while True:
@@ -63,9 +76,9 @@ class WorldDrawer:
         x = 600
         y = 250
         option = "Catalog"
-        job_list = get_job_list()
+        job_list = requests.get("http://127.0.0.1:3000/assignments/", headers=self.get_headers).json()
         while menu:
-            menu = pygame.Rect(x, y, 400, 500)
+            menu = pygame.Rect(x, y, 400, 600)
             pygame.draw.rect(self.display_surface, (0,0,0), menu)
             self.draw_text("DECISION MENU", (255,255,255), x+150, y)
 
@@ -116,9 +129,9 @@ class WorldDrawer:
                     self.draw_text(f"{job['villagers_assigned']}", (255,255,255), x+375, y+55+((interval+height)*c))
                     c += 1
             elif option == "Assignments":
-                interval = 20
+                interval = 15
                 height = 20
-                c = 0
+                c = 1
                 buttons = []
                 for job in job_list:
                     if job["job_title"] != "unassigned":
@@ -128,8 +141,9 @@ class WorldDrawer:
                         self.draw_text("Add "+job["job_title"], (255,255,255), x+5, y+55+((interval+height)*c))
                         self.draw_text(f"{job['villagers_assigned']}", (255,255,255), x+375, y+55+((interval+height)*c))
                     else:
-                        self.draw_text(job["job_title"], (255,255,255), x+5, y+55+((interval+height)*c))
-                        self.draw_text(f"{job['villagers_assigned']}", (255,255,255), x+375, y+55+((interval+height)*c))
+                        c -= 1
+                        self.draw_text(job["job_title"], (255,255,255), x+5, y+55)
+                        self.draw_text(f"{job['villagers_assigned']}", (255,255,255), x+375, y+55)
                     c += 1
                 for job in job_list:
                     if job["job_title"] != "unassigned":
@@ -140,20 +154,21 @@ class WorldDrawer:
                         c += 1
 
                 mx, my = pygame.mouse.get_pos()
-                c = 1
+                c = 0
                 for b in buttons:
                     if b.collidepoint(mx, my):
                         if click:
-                            if c >= 6:
-                                c += 1
-                            k = list(self.employment)[c%(len(self.employment))]
                             if c < 6:
-                                job_list[k]["villagers_assigned"] += 1
+                                if job_list[c%7]["job_title"] == "unassigned":
+                                    c += 1
+                                job_list[c%7]["villagers_assigned"] += 1
                                 for job in job_list:
                                     if job["job_title"] == "unassigned":
                                         job["villagers_assigned"] -= 1
                             else:
-                                job_list[k]["villagers_assigned"] -= 1
+                                if job_list[(c+1)%7]["job_title"] == "unassigned":
+                                    c += 1
+                                job_list[(c+1)%7]["villagers_assigned"] -= 1
                                 for job in job_list:
                                     if job["job_title"] == "unassigned":
                                         job["villagers_assigned"] += 1
@@ -179,7 +194,7 @@ class WorldDrawer:
             click = False
             click, menu = self.wait_key()
             if menu == False:
-                assign_villager(job_list)
+                requests.post("http://127.0.0.1:3000/assignments/plan", headers=self.post_headers, data={"list": job_list})
 
     def cont(self):
         time.sleep(5)
