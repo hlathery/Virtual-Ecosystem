@@ -16,7 +16,7 @@ Returns an overview of the village
     } 
 ```
 
-### 1.2. Create villager - `/new_villager/` (POST)
+### 1.2. Create villager - `/new_villager` (POST)
 Creates a new villager, unassigned 
 
 **Request:** 
@@ -51,13 +51,12 @@ Returns a list of all villagers with their respective attributes.
         "name": "string", 
         "age": "int", 
         "nourishment": "string", 
-        "job_id": "int", 
-        "building_id": "int" 
+        "job_id": "int"
     }
 ]
 ```
 
-### 1.4. Villagers in building - `village/buildings/villagers` (GET) 
+### 1.4. Villagers in building - `village/buildings/villagers/` (GET) 
 Returns all villagers in a building
 
 **Request:**
@@ -82,7 +81,7 @@ Returns all villagers in a building
 ]
 ```  
 
-### 1.5. Build structure - `/village/build_building/` (POST) 
+### 1.5. Build structure - `/village/build_building` (POST) 
 
 **Request:** 
 
@@ -104,7 +103,7 @@ Returns all villagers in a building
 }
 ``` 
 
-### 1.6. Adjust storage `/village/fill_inventory/` (PUT) 
+### 1.6. Adjust storage `/village/fill_inventory` (PUT) 
 Fill inventory of specific building(s)
 
 **Request:** 
@@ -127,7 +126,7 @@ Fill inventory of specific building(s)
 }
 ``` 
 
-### 1.7. View building inventory - `/village/building_inventory/` (GET)
+### 1.7. View building inventory - `/village/building_inventory` (POST)
 Gets inventory of specific building  
 
 **Request:** 
@@ -167,7 +166,7 @@ Gets inventory across all buildings
 
 All API calls for the ecosystem.
 
-### 2.1. Plant seed - `/eco/grow_plants/` (PUT)
+### 2.1. Plant seed - `/eco/grow_plants` (PUT)
 Allows the user to plant seeds for trees and plants
 
 **Request:** 
@@ -217,7 +216,7 @@ View overall prey(?)
 ] 
 ```
 
-### 2.4. Collect water - `/eco/grab_water/` (PUT) 
+### 2.4. Collect water - `/eco/grab_water` (PUT) 
 
 Allows user to collect water as needed for village
 
@@ -226,9 +225,9 @@ Allows user to collect water as needed for village
 ```json
 [
     { 
-        "water_id": "int", // (which water source it came from) 
+        "water_id": "int", 
         "amount": "int", 
-        "nourishment": "string", // (how clean is this water?) 
+        "nourishment": "string",
         "biome_id": "int" 
     }
 ] 
@@ -242,7 +241,7 @@ Allows user to collect water as needed for village
 }
 ``` 
 
-### 2.5. Spawn prey - `/eco/spawn_prey/` (POST)
+### 2.5. Spawn prey - `/eco/spawn_prey` (POST)
 Spawning prey to a specific biome, worth noting this call can also reduce 
 the number of prey (maybe they died due to nourshiment or killed off by hunters/predators) 
 
@@ -291,7 +290,7 @@ Grabbing prey given a specific biome
 ]
 ``` 
 
-### 2.7. Spawn predator -`/eco/spawn_predator/` (POST)
+### 2.7. Spawn predator -`/eco/spawn_predator` (POST)
 Spawning predator to a specific biome, worth noting this call can also reduce
 the number of prey (maybe they died due to nourshiment or killed off by hunters/predators)
 
@@ -316,7 +315,7 @@ the number of prey (maybe they died due to nourshiment or killed off by hunters/
 }
 ``` 
 
-### 2.8. View predators - `/eco/predator/` (POST)
+### 2.8. View predators - `/eco/predator` (POST)
 View total amount predators in a specific biome 
 
 **Request:** 
@@ -344,7 +343,7 @@ View total amount predators in a specific biome
 
 Used for assigning jobs
 
-### 3.1. Get job list - `assignments/get_job_list` (GET)
+### 3.1. Get job list - `assignments/get_job_list/` (GET)
 
 **Response:**
 
@@ -357,7 +356,7 @@ Used for assigning jobs
 ]
 ```
 
-### 3.2. Assign job - `assignments/assign_villager/` (PUT)
+### 3.2. Assign job - `assignments/assign_villager` (PUT)
 
 **Request:** 
 
@@ -385,7 +384,7 @@ Used for assigning jobs
 
 Grabs information about the game world
 
-### 4.1. Get Time - `/info/current_time` (GET)
+### 4.1. Get Time - `/info/current_time/` (GET)
 
 **Response:**
 
