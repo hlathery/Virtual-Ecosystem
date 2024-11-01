@@ -76,7 +76,7 @@ class WorldDrawer:
         x = 600
         y = 250
         option = "Catalog"
-        job_list = requests.get("http://127.0.0.1:3000/assignments/", headers=self.get_headers).json()
+        job_list = requests.get("http://127.0.0.1:3000/assignments/get_job_list", headers=self.get_headers).json()
         while menu:
             menu = pygame.Rect(x, y, 400, 600)
             pygame.draw.rect(self.display_surface, (0,0,0), menu)
@@ -194,7 +194,7 @@ class WorldDrawer:
             click = False
             click, menu = self.wait_key()
             if menu == False:
-                res = requests.post("http://127.0.0.1:3000/assignments/plan", json=job_list, headers=self.post_headers)
+                res = requests.put("http://127.0.0.1:3000/assignments/assign_villager", json=job_list, headers=self.post_headers)
 
     def cont(self):
         time.sleep(5)

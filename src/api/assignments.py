@@ -60,12 +60,11 @@ def assign_villager(job_list: list[Jobs]):
                 update_query =  """
                                     UPDATE villagers
                                     SET job_id = :job_id
-                                    WHERE id IN (SELECT id FROM 
-                                        (SELECT id 
-                                        FROM villagers 
-                                        ORDER BY id 
-                                        ASC LIMIT :villagers_asn) tmp) 
-                                    AND job_id = 0"
+                                    WHERE id IN (
+                                        SELECT id FROM villagers
+                                        WHERE job_id = 0
+                                        LIMIT :villagers_asn
+                                    )
                                 """
                 connection.execute(sqlalchemy.text(update_query),{ "job_id" : job.job_id,
                                                                     "villagers_asn" : job.villagers_assigned
