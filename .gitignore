@@ -5,3 +5,10 @@ venv
 __pycache__
 /.env
 info.log
+.vercel
+.venv
+venv
+.idea
+__pycache__
+/.env
+info.log
