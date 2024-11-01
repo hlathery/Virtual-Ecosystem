@@ -194,7 +194,7 @@ class WorldDrawer:
             click = False
             click, menu = self.wait_key()
             if menu == False:
-                requests.post("http://127.0.0.1:3000/assignments/plan", headers=self.post_headers, data={"list": job_list})
+                res = requests.post("http://127.0.0.1:3000/assignments/plan", json=job_list, headers=self.post_headers)
 
     def cont(self):
         time.sleep(5)
