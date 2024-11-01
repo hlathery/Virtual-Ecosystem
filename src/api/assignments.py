@@ -47,8 +47,7 @@ def get_job_list():
     return job_list
 
 @router.put("/assign_villager")
-# Shouldn't this be           list[Jobs]?
-def assign_villager(job_list: list[dict]):
+def assign_villager(job_list: list[Jobs]):
     """
     The call passes in a catalog of each job type and how many villagers are working in each job type. 
     The user would return back new values, if any, of how many villagers they want in each job.
@@ -57,7 +56,7 @@ def assign_villager(job_list: list[dict]):
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text("UPDATE villagers SET job_id = 0"))
         for job in job_list:
-            if job["villagers_assigned"] > 0:
+            if job.villagers_assigned > 0:
                 update_query =  """
                                     UPDATE villagers
                                     SET job_id = :job_id
@@ -68,8 +67,8 @@ def assign_villager(job_list: list[dict]):
                                         ASC LIMIT :villagers_asn) tmp) 
                                     AND job_id = 0"
                                 """
-                connection.execute(sqlalchemy.text(update_query),{ "job_id" : job['job_id'],
-                                                                    "villagers_asn" : job['villagers_assigned']
+                connection.execute(sqlalchemy.text(update_query),{ "job_id" : job.job_id,
+                                                                    "villagers_asn" : job.villagers_assigned
                                                                     })
 
     return "OK"
