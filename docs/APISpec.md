@@ -26,7 +26,7 @@ Creates a new villager, unassigned
         "name":  "string", 
         "id": "int", 
         "age": "int",
-        "nourishment": "string" 
+        "nourishment": "int" 
     }
 ] 
 ```
@@ -49,9 +49,9 @@ Returns a list of all villagers with their respective attributes.
     { 
         "id": "int", 
         "name": "string", 
-        "age": "int", 
-        "nourishment": "string", 
-        "job_id": "int"
+        "job" : "string",
+        "age" : "int",
+        "health": "int"
     }
 ]
 ```
@@ -74,9 +74,8 @@ Returns all villagers in a building
     { 
         "id": "int", 
         "name": "string", 
-        "age": "int", 
-        "nourishment": "string", 
-        "job_id": "int", 
+        "job" : "string",
+        "age" : "int"
     }
 ]
 ```  
@@ -111,7 +110,7 @@ Fill inventory of specific building(s)
 ```json
 [
     { 
-        "building_storage_id": "int", 
+        "building_id": "int", 
         "resource_name": "string", 
         "amount": "int" 
     }
@@ -227,7 +226,7 @@ Allows user to collect water as needed for village
     { 
         "water_id": "int", 
         "amount": "int", 
-        "nourishment": "string",
+        "nourishment": "int",
         "biome_id": "int" 
     }
 ] 
@@ -251,7 +250,7 @@ the number of prey (maybe they died due to nourshiment or killed off by hunters/
 [
     { 
         "prey_id": "int", 
-        "nourishment": "string", 
+        "nourishment": "int", 
         "amount": "int", 
         "biome_id": "int" 
     }
@@ -300,7 +299,7 @@ the number of prey (maybe they died due to nourshiment or killed off by hunters/
 [
     { 
         "predator_id": "int", 
-        "nourishment": "string", 
+        "nourishment": "int", 
         "amount": "int", 
         "biome_id": "int" 
     }
