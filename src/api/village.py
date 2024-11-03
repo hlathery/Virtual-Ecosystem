@@ -18,10 +18,8 @@ class Villagers(BaseModel):
     nourishment: int
 
 class Building(BaseModel):
-    resource_name: str
-    resource_cost: int
     quantity: int
-    building_id: int
+    building_name: int
 
 class BuildingStorage(BaseModel):
     building_id: int
@@ -36,13 +34,48 @@ def get_village_overview():
     Returns a general overview of village characteristics and villagers
     """
     with db.engine.begin() as connection:
-        villager_count = connection.execute(sqlalchemy.text("SELECT COUNT(villagers.id) AS num_villagers FROM villagers")).scalar()
-        buildings_count = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM buildings")).scalar()
+        villager_count = connection.execute(sqlalchemy.text("SELECT COUNT(villagers.id) AS num_villagers FROM villagers")).scalar_one()
+        buildings = connection.execute(sqlalchemy.text("SELECT name, quantity, FROM buildings"))
+
+    buildings_name = []
+    buildings_count = []
+    for row in buildings:
+        buildings.append(row.type)
+        buildings_count.append(row.amount)
 
     return {
+                "buildings": buildings_name,
                 "num_buildings": buildings_count,
-                "num_villagers": villager_count
+                "num_villager": villager_count
             }
+
+
+
+@router.get("/catalog")
+def catalog():
+    """
+    Gets the catalog of valid buildings available to build
+    """
+    with db.engine.begin() as connection:
+        buildings = connection.execute(sqlalchemy.text('''SELECT buildings.name AS type, catalog.cost AS price
+                                                          FROM buildings
+                                                          JOIN catalog ON buildings.id = catalog.building_id
+                                                       '''))
+        funds = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM storage WHERE resource_name = 'wood'")).scalar_one()
+
+        types = []
+        costs = []
+        for row in buildings:
+            if row.price < funds:
+                types.append(row.type)
+                costs.append(row.price)
+
+        return {
+            "buildings": types,
+            "costs": costs,
+            "funds": funds
+        }
+
 
 
 
@@ -136,7 +169,7 @@ def get_occupying_villagers(building_id : int):
 
 
 @router.post("/build_building")
-def build_structure(buildings: list[Building]):
+def build_structure(buildings: list[Building], funds: int):
     """
     Takes in buildings user wants to build
     """
@@ -144,8 +177,12 @@ def build_structure(buildings: list[Building]):
     # Then just allow them to "buy" it so long as they have correct amount of gold, and if they do subtract a certain
     # quantity of resources and gold?
 
-    created = True
-    return {"success" : created}
+    with db.engine.begin() as connection:
+        for building in buildings:
+            connection.execute(sqlalchemy.text("UPDATE buildings SET quantity = :amount WHERE name = :type"), {"amount": building.quantity, "type": building.building_name})
+        connection.execute(sqlalchemy.text("UPDATE storage SET quantity = :fund/COUNT(*) WHERE resource_name = 'wood'"), {"fund": funds})
+
+    return "OK"
 
 
 

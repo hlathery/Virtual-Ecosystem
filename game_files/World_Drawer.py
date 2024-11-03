@@ -19,9 +19,6 @@ class WorldDrawer:
         self.font = pygame.font.SysFont(None, 20)
         self.get_headers = {"accept": "application/json", "access_token": "hlath"}
         self.post_headers = {"accept": "application/json", "access_token": "hlath", "Content-Type": "application/json"}
-        self.building_types = ["House", "Farm", "Hunter/Forager", "Mine", "Lumber Mill"]
-        self.wood = 100
-        self.buildings = {"Houses":0, "Farms":0, "Hunter/Forager Huts":0, "Mines":0, "Lumber Mills":0}
         self.menu_options = ["Catalog", "Village Info", "Assignments", "Eco Info"]
         self.eco = {"Water Bodies":0, "Forests":0, "Grass":0, "Desert":0}
 
@@ -76,7 +73,10 @@ class WorldDrawer:
         x = 600
         y = 250
         option = "Catalog"
+        build = []
         job_list = requests.get("http://127.0.0.1:3000/assignments/get_job_list", headers=self.get_headers).json()
+        overview = requests.get("http://127.0.0.1:3000/village/", headers=self.get_headers).json()
+        catalog_list = requests.get("http://127.0.0.1:3000/village/catalog", headers=self.get_headers).json()
         while menu:
             menu = pygame.Rect(x, y, 400, 600)
             pygame.draw.rect(self.display_surface, (0,0,0), menu)
@@ -99,12 +99,12 @@ class WorldDrawer:
                 height = 30
                 c = 0
                 buttons = []
-                for type in self.building_types:
+                for i in range(0, len(catalog_list["buildings"])):
                     button = pygame.Rect(x, y+50+((interval+height)*c), 150, height)
                     buttons.append(button)
                     pygame.draw.rect(self.display_surface, (0,0,255), button)
-                    self.draw_text("Add "+type, (255,255,255), x+5, y+55+((interval+height)*c))
-                    self.draw_text(f"{self.wood/20}", (255,255,255), x+375, y+55+((interval+height)*c))
+                    self.draw_text("Add "+catalog_list['buildings'][i], (255,255,255), x+5, y+55+((interval+height)*c))
+                    self.draw_text(f"{catalog_list['funds']/catalog_list['costs'][i]}", (255,255,255), x+375, y+55+((interval+height)*c))
                     c += 1
 
                 mx, my = pygame.mouse.get_pos()
@@ -112,22 +112,33 @@ class WorldDrawer:
                 for b in buttons:
                     if b.collidepoint(mx, my):
                         if click:
-                            k = list(self.buildings)[c]
-                            self.wood -= 20
-                            self.buildings[k] += 1
+                            if catalog_list["funds"] >= catalog_list["costs"][c]:
+                                catalog_list["funds"] -= catalog_list["costs"][c]
+                                if {"quantity": 1, "building_name": catalog_list["buildings"][c]} not in build:
+                                    build.append({
+                                        "quantity": 1,
+                                        "building_name": catalog_list["buildings"][c]
+                                    })
+                                else:
+                                    for elem in build:
+                                        if elem["building_name"] == catalog_list["buildings"][c]:
+                                            elem["quantity"] += 1
                     c += 1
             elif option == "Village Info":
                 interval = 20
                 height = 20
                 c = 0
-                for type, num in self.buildings.items():
-                    self.draw_text(type, (255,255,255), x+5, y+55+((interval+height)*c))
-                    self.draw_text(f"{num}", (255,255,255), x+375, y+55+((interval+height)*c))
+                for i in range(0, len(overview["buildings"])):
+                    self.draw_text(overview["buildings"][i], (255,255,255), x+5, y+55+((interval+height)*c))
+                    self.draw_text(f"{overview['num_buildings']}", (255,255,255), x+375, y+55+((interval+height)*c))
                     c += 1
                 for job in job_list:
                     self.draw_text(job["job_title"], (255,255,255), x+5, y+55+((interval+height)*c))
                     self.draw_text(f"{job['villagers_assigned']}", (255,255,255), x+375, y+55+((interval+height)*c))
                     c += 1
+                self.draw_text("Population", (255,255,255), x+5, y+55+((interval+height)*c))
+                self.draw_text(f"{overview['num_villager']}", (255,255,255), x+375, y+55+((interval+height)*c))
+
             elif option == "Assignments":
                 interval = 15
                 height = 20
@@ -195,6 +206,8 @@ class WorldDrawer:
             click, menu = self.wait_key()
             if menu == False:
                 res = requests.put("http://127.0.0.1:3000/assignments/assign_villager", json=job_list, headers=self.post_headers)
+                res = requests.post("http://127.0.0.1:3000/village/build_building", json=build, data=catalog_list["funds"], headers=self.post_headers)
+
 
     def cont(self):
         time.sleep(5)
