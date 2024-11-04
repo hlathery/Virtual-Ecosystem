@@ -42,17 +42,19 @@ def grow_plants(plants_to_grow: list[Entity]):
                         UPDATE entitys
                         SET quantity = quantity + :quantity
                             nourishment = nourishment + :nourishment
-                            biome_id = :biome_id
-                            entity_type = 
-
+                        WHERE entity_type = :entity_type
+                            AND biome_id = :biome_id
                       """
         
-        # THIS IS NOT FINISHED
+        #!!! THIS IS NOT FINISHED !!!#
 
-        connection.execute(sqlalchemy.text())
+        # connection.execute(sqlalchemy.text(plant_query),{"quantity":})
 
 
     return "OK"
+
+
+
 
 @router.get("/trees/")
 def plants_overview():
@@ -124,16 +126,39 @@ def collect_water(water_bodies: list[Entity]):
 
 
 @router.post("/spawn_prey")
-def spawn_prey():
+def spawn_prey(spawn_prey : Entity):
     """
     Takes in a list of prey to be spawned in the requested biome
     """
+    
 
-@router.get("/prey")
-def get_prey():
+
+
+@router.post("/prey")
+def get_prey(biome_id : int):
     """
-    Returns a list of prey and their amounts in the requested biome 
+    Returns the amount of prey in the requested biome 
     """
+    with db.engine.begin() as connection:
+        prey_query = """
+                        SELECT entity_type, 
+                            SUM(quantity) as Total
+                        FROM entitys
+                        WHERE entity_type = 'prey'
+                            AND biome_id = :biome_id
+                        GROUP BY entity_type
+                     """
+        prey = connection.execute(sqlalchemy.text(prey_query), {"biome_id":biome_id}).fetchone()
+
+    entity_type = prey[0]
+    amount = prey[1]
+    return({
+        "entity_type": entity_type,
+        "amount": amount
+    })
+
+
+
 
 @router.post("/spawn_predator/")
 def spawn_predator(predators: list[Entity]):
@@ -141,11 +166,31 @@ def spawn_predator(predators: list[Entity]):
     Takes in a list of predators and spawns them in their respective biome
     """
 
+
+
+
 @router.post("/predator/")
 def get_predator(biome_id: int):
     """
     Returns a list of predator and their amounts in the requested biome
     """
+    with db.engine.begin() as connection:
+        predator_query = """
+                        SELECT entity_type, 
+                            SUM(quantity) as Total
+                        FROM entitys
+                        WHERE entity_type = 'predator'
+                            AND biome_id = :biome_id
+                        GROUP BY entity_type
+                     """
+        predator = connection.execute(sqlalchemy.text(predator_query), {"biome_id":biome_id}).fetchone()
+
+    entity_type = predator[0]
+    amount = predator[1]
+    return({
+        "entity_type": entity_type,
+        "amount": amount
+    })
 
 
 
