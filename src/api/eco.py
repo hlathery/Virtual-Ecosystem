@@ -36,6 +36,22 @@ def grow_plants(plants_to_grow: list[Entity]):
     Takes in a request that contains of list of plant seeds to be planted in the 
     requested biome
     """
+    with db.engine.begin() as connection:
+        plant_list = {row.entity_id: row.quantity for row in plants_to_grow}
+        plant_query = """
+                        UPDATE entitys
+                        SET quantity = quantity + :quantity
+                            nourishment = nourishment + :nourishment
+                            biome_id = :biome_id
+                            entity_type = 
+
+                      """
+        
+        # THIS IS NOT FINISHED
+
+        connection.execute(sqlalchemy.text())
+
+
     return "OK"
 
 @router.get("/trees/")
@@ -45,16 +61,16 @@ def plants_overview():
     """
     plants_list = []
     plants_query =  """
-                        SELECT entity_type, SUM(quantity) as Total
+                        SELECT entity_type, 
+                            SUM(quantity) as Total
                         FROM entitys
-                        WHERE entity_type IN ('trees', 'flowers','vegtables')
+                        WHERE entity_type = 'plants'
                         GROUP BY entity_type
                     """
     
     with db.engine.begin() as connection:
         db_table = connection.execute(sqlalchemy.text(plants_query))
         plants_table = {row.entity_type:row.total for row in db_table}
-
         
     for plant in plants_table:
         plants_list.append({
@@ -77,7 +93,7 @@ def prey_overview():
     prey_query =    """
                         SELECT entity_type, SUM(quantity) as Total
                         FROM entitys
-                        WHERE entity_type IN ('rabbits', 'pigs','chickens')
+                        WHERE entity_type = 'prey'
                         GROUP BY entity_type
                     """
 
@@ -85,7 +101,6 @@ def prey_overview():
         db_table = connection.execute(sqlalchemy.text(prey_query))
         prey_table = {row.entity_type:row.total for row in db_table}
 
-        
     for prey in prey_table:
         prey_list.append({
             "prey_id": prey,
@@ -95,12 +110,17 @@ def prey_overview():
     print(f"List of Prey in Ecosystem: {prey_list} ")
     return prey_list
 
+
+
+
 @router.put("/grab_water")
 def collect_water(water_bodies: list[Entity]):
     """
     The call takes in a list of bodies of water that the user will harvest water from 
     """
     return "OK"
+
+
 
 
 @router.post("/spawn_prey")
