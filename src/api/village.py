@@ -57,10 +57,13 @@ def catalog():
     Gets the catalog of valid buildings available to build
     """
     with db.engine.begin() as connection:
-        buildings = connection.execute(sqlalchemy.text('''SELECT buildings.name AS type, catalog.cost AS price
-                                                          FROM buildings
-                                                          JOIN catalog ON buildings.id = catalog.building_id
-                                                       '''))
+        select_query =  """ 
+                            SELECT buildings.name AS type, 
+                                catalog.cost AS price
+                            FROM buildings
+                            JOIN catalog ON buildings.id = catalog.building_id
+                        """
+        buildings = connection.execute(sqlalchemy.text(select_query))
         funds = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM storage WHERE resource_name = 'wood'")).scalar_one()
 
         types = []
