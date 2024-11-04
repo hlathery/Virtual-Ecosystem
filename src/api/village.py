@@ -146,7 +146,7 @@ def build_structure(buildings: list[Building]):
 
     created = True
     return {"success" : created}
-
+u
 
 
 @router.put("/fill_inventory")
