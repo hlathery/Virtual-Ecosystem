@@ -6,6 +6,11 @@ from Util import *
 def test_generate_world(weights, random_seed):
     world = World(WORLD_X, WORLD_Y, random_seed)
     tile_map = world.get_tiled_map(weights)
+    
+    # add count biomes
+    biome_counts = world.count_biomes(tile_map)
+    print("Biome counts:", biome_counts)
+    
     world_drawer = WorldDrawer(tile_map)
     world_drawer.draw()
 
@@ -56,3 +61,5 @@ def test_emerge(target_weights, random_seed):
             weights[OCEAN3] -= 1
         else:
             done = True
+    
+    
