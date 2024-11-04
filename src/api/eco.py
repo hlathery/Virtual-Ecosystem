@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from src.api import auth
+import sqlalchemy
 from src import database as db
 
 router = APIRouter(
@@ -42,12 +43,57 @@ def plants_overview():
     """
     Returns a list of all plants and the amount in the entire ecosystem
     """
+    plants_list = []
+    plants_query =  """
+                        SELECT entity_type, SUM(quantity) as Total
+                        FROM entitys
+                        WHERE entity_type IN ('trees', 'flowers','vegtables')
+                        GROUP BY entity_type
+                    """
+    
+    with db.engine.begin() as connection:
+        db_table = connection.execute(sqlalchemy.text(plants_query))
+        plants_table = {row.entity_type:row.total for row in db_table}
+
+        
+    for plant in plants_table:
+        plants_list.append({
+            "plant_id": plant,
+            "quantity": plants_table[plant] 
+        })
+
+    print(f"List of Plants in Ecosystem: {plants_list} ")
+    return plants_list
+        
+    
+    
 
 @router.get("/life/prey/")
 def prey_overview():
     """
     Returns a list of all prey and the amount in the entire ecosystem
     """
+    prey_list = []
+    prey_query =    """
+                        SELECT entity_type, SUM(quantity) as Total
+                        FROM entitys
+                        WHERE entity_type IN ('rabbits', 'pigs','chickens')
+                        GROUP BY entity_type
+                    """
+
+    with db.engine.begin() as connection:
+        db_table = connection.execute(sqlalchemy.text(prey_query))
+        prey_table = {row.entity_type:row.total for row in db_table}
+
+        
+    for prey in prey_table:
+        prey_list.append({
+            "prey_id": prey,
+            "quantity": prey_table[prey] 
+        })
+
+    print(f"List of Prey in Ecosystem: {prey_list} ")
+    return prey_list
 
 @router.put("/grab_water")
 def collect_water(water_bodies: list[Entity]):
