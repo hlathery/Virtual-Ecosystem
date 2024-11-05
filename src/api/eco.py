@@ -38,18 +38,25 @@ def post_biome_counts(biomes: Dict[str, int]):
     """
     Posts the biome counts from flood fill.
     """
-    ocean_values = ", ".join(["('ocean')"] * biomes.get("Ocean", 0))
-    forest_values = ", ".join(["('forest')"] * biomes.get("Forest", 0))
-
+    
     with db.engine.begin() as connection:
-
-        if biomes.get("Ocean", 0) > 0:
-            connection.execute(sqlalchemy.text(f"INSERT INTO biomes (biome_type) VALUES (:ocean_values)"),
-                               {"ocean_values": ocean_values})
+        insert_values = []
         
+        if biomes.get("Ocean", 0) > 0:
+            ocean_count = biomes["Ocean"]
+            insert_values.extend(["('ocean')"] * ocean_count)
+            
         if biomes.get("Forest", 0) > 0:
-            connection.execute(sqlalchemy.text(f"INSERT INTO biomes (biome_type) VALUES (:forest_values)"),
-                               {"forest_values": forest_values})
+            forest_count = biomes["Forest"]
+            insert_values.extend(["('forest')"] * forest_count) 
+
+        if insert_values:
+            all_values = ', '.join(insert_values)
+            insert_query = "INSERT INTO biomes (biome_name) VALUES " + all_values + ";" # i dont know why: it only works like this
+            connection.execute(sqlalchemy.text(insert_query))
+
+    return "Ok"
+
 
 @router.put("/grow_plants")
 def grow_plants(plants_to_grow: list[Entity]):
@@ -133,17 +140,6 @@ def prey_overview():
         
     print(f"Total prey in ecosystem: {prey_list} ")
     return prey_list
-
-
-
-@router.put("/grab_water")
-def collect_water(water_bodies: list[Entity]):
-    """
-    The call takes in a list of bodies of water that the user will harvest water from 
-    """
-    return "OK"
-
-
 
 
 @router.post("/spawn_prey")
