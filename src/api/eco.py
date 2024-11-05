@@ -30,6 +30,14 @@ def get_eco_overview():
     predators and prey and how many there are, the characteristics of each body of water and their id, 
     plants and how many there are, resources (trees for wood, mine shafts for mining, etc.).
     """
+    with db.engine.begin() as connection: 
+        result = connection.execute(sqlalchemy.text("SELECT biome_name, COUNT(*) FROM biomes GROUP BY biome_name"))
+
+
+    biome_counts = {row[0]: row[1] for row in result}
+
+    print(biome_counts)
+
 
     return "OK"
 
