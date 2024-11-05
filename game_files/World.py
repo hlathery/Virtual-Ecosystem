@@ -144,5 +144,6 @@ class World():
                             biome_counts[biome_name] += 1
                             # print(f"Found {biome_name} - Size: {size} tiles")  # for testing
         
+        requests.post("http://127.0.0.1:3000/eco/biomes/", json=biome_counts, headers={"accept": "application/json", "access_token": "hlath", "Content-Type": "application/json"})
 
         return biome_counts

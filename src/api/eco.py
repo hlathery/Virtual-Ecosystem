@@ -44,11 +44,11 @@ def post_biome_counts(biomes: Dict[str, int]):
     with db.engine.begin() as connection:
 
         if biomes.get("Ocean", 0) > 0:
-            connection.execute(sqlalchemy.text(f"INSERT INTO biomes (biome_type) VALUES (:ocean_values)"),
+            connection.execute(sqlalchemy.text("INSERT INTO biomes (biome_type) VALUES (:ocean_values)"),
                                {"ocean_values": ocean_values})
         
         if biomes.get("Forest", 0) > 0:
-            connection.execute(sqlalchemy.text(f"INSERT INTO biomes (biome_type) VALUES (:forest_values)"),
+            connection.execute(sqlalchemy.text("INSERT INTO biomes (biome_type) VALUES (:forest_values)"),
                                {"forest_values": forest_values})
 
 @router.put("/grow_plants")
