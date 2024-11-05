@@ -8,7 +8,7 @@ After noticing there is a low number of villagers in forager and hunter jobs. Th
 
 - `POST assignments/plan`. And the user will be prompted to return the json for the new amount of villagers in each job so they increase the amount of villagers in the "forager" and "hunter" jobs “villagers_assigned”, and the correct amount of villagers will be allocated to each job
 
-After this is completed, the villagers will successfully increase the amount of resources available to keep their villagers alive and ‘PUT village/new_villager’ along with ‘POST /village/kill_villager’ will be called to populate the village more or less respectively to that we can assign new villagers made to villager’s jobs that have died.
+After this is completed, the villagers will successfully increase the amount of resources available to keep their villagers alive and `PUT village/new_villager` along with `POST /village/kill_villager` will be called to populate the village more or less respectively to that we can assign new villagers made to villager’s jobs that have died.
 
 # Testing results
 ## Step 1: Calling "GET village/village_inventory"
