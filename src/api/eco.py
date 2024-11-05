@@ -70,7 +70,7 @@ def get_prey():
     """
 
 @router.post("/spawn_predator/")
-def spawn_predator(predators: list[Entity]):
+def spawn_predator():
     """
     Takes in a list of predators and spawns them in their respective biome
     """
