@@ -5,6 +5,7 @@ import sqlalchemy
 from sqlalchemy import update
 from sqlalchemy.orm import session
 from src import database as db
+from typing import Dict
 
 router = APIRouter(
     prefix="/eco",
@@ -31,6 +32,24 @@ class Entity(BaseModel):
 #     """
 
 #     return "OK"
+
+@router.post("/biomes/")
+def post_biome_counts(biomes: Dict[str, int]):
+    """
+    Posts the biome counts from flood fill.
+    """
+    ocean_values = ", ".join(["('ocean')"] * biomes.get("Ocean", 0))
+    forest_values = ", ".join(["('forest')"] * biomes.get("Forest", 0))
+
+    with db.engine.begin() as connection:
+
+        if biomes.get("Ocean", 0) > 0:
+            connection.execute(sqlalchemy.text(f"INSERT INTO biomes (biome_type) VALUES (:ocean_values)"),
+                               {"ocean_values": ocean_values})
+        
+        if biomes.get("Forest", 0) > 0:
+            connection.execute(sqlalchemy.text(f"INSERT INTO biomes (biome_type) VALUES (:forest_values)"),
+                               {"forest_values": forest_values})
 
 @router.put("/grow_plants")
 def grow_plants(plants_to_grow: list[Entity]):
@@ -117,12 +136,12 @@ def prey_overview():
 
 
 
-@router.put("/grab_water")
-def collect_water(water_bodies: list[Entity]):
-    """
-    The call takes in a list of bodies of water that the user will harvest water from 
-    """
-    return "OK"
+# @router.put("/grab_water")
+# def collect_water(water_bodies: list[Entity]):
+#     """
+#     The call takes in a list of bodies of water that the user will harvest water from 
+#     """
+#     return "OK"
 
 
 
@@ -154,7 +173,7 @@ def spawn_prey(prey_to_spawn : list[Entity]):
 
 
 
-@router.post("/prey")
+@router.get("/prey/{biome_id}")
 def biome_prey(biome_id : int):
     """
     Returns the amount of prey in the requested biome 
@@ -207,7 +226,7 @@ def spawn_predator(predators_to_spawn: list[Entity]):
 
 
 
-@router.post("/predator/")
+@router.get("/predator/{biome_id}")
 def biome_predator(biome_id: int):
     """
     Returns a list of predator and their amounts in the requested biome
