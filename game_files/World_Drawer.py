@@ -1,5 +1,6 @@
 import pygame
 from Util import *
+from World import *
 import time
 import threading
 import requests
@@ -40,6 +41,7 @@ class WorldDrawer:
 
     def draw(self):
         while True:
+            World.count_biomes(self=World, tile_map=self.height_map)
             self.draw_tiles(self.height_map)
             pygame.display.flip()
             self.decisions()
