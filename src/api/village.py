@@ -192,6 +192,7 @@ def build_structure(buildings: list[Building]):
     # Then just allow them to "buy" it so long as they have correct amount of gold, and if they do subtract a certain
     # quantity of resources and gold?
 
+
     update_list = []
     for building in buildings:
         update_list.append({
@@ -203,6 +204,8 @@ def build_structure(buildings: list[Building]):
         connection.execute(sqlalchemy.text("UPDATE buildings SET quantity = quantity + :amount WHERE name = :id"), update_list)
 
     return "OK"
+
+
 
 
 
