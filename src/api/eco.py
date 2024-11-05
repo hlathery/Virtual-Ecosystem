@@ -136,12 +136,12 @@ def prey_overview():
 
 
 
-@router.put("/grab_water")
-def collect_water(water_bodies: list[Entity]):
-    """
-    The call takes in a list of bodies of water that the user will harvest water from 
-    """
-    return "OK"
+# @router.put("/grab_water")
+# def collect_water(water_bodies: list[Entity]):
+#     """
+#     The call takes in a list of bodies of water that the user will harvest water from 
+#     """
+#     return "OK"
 
 
 
@@ -173,7 +173,7 @@ def spawn_prey(prey_to_spawn : list[Entity]):
 
 
 
-@router.post("/prey")
+@router.get("/prey/{biome_id}")
 def biome_prey(biome_id : int):
     """
     Returns the amount of prey in the requested biome 
@@ -226,7 +226,7 @@ def spawn_predator(predators_to_spawn: list[Entity]):
 
 
 
-@router.post("/predator/")
+@router.get("/predator/{biome_id}")
 def biome_predator(biome_id: int):
     """
     Returns a list of predator and their amounts in the requested biome
