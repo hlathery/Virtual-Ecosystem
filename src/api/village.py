@@ -11,24 +11,18 @@ router = APIRouter(
 )
 
 class Villagers(BaseModel):
-    villager_id: int
-    name: str
     job_id: int
     age: int
     nourishment: int
 
 class Building(BaseModel):
-    resource_name: str
-    resource_cost: int
     quantity: int
-    building_id: int
+    building_name: str
 
 class BuildingStorage(BaseModel):
-    building_id: int
     resource_name: str
     amount: int
-    
-    
+
 
 @router.get("/")
 def get_village_overview():
@@ -36,30 +30,68 @@ def get_village_overview():
     Returns a general overview of village characteristics and villagers
     """
     with db.engine.begin() as connection:
-        villager_count = connection.execute(sqlalchemy.text("SELECT COUNT(villagers.id) AS num_villagers FROM villagers")).scalar()
-        buildings_count = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM buildings")).scalar()
+        villager_count = connection.execute(sqlalchemy.text("SELECT COUNT(villagers.id) AS num_villagers FROM villagers")).scalar_one()
+        buildings = connection.execute(sqlalchemy.text("SELECT name, quantity FROM buildings"))
+
+    buildings_name = []
+    buildings_count = []
+    for row in buildings:
+        buildings_name.append(row.name)
+        buildings_count.append(row.quantity)
 
     return {
+                "buildings": buildings_name,
                 "num_buildings": buildings_count,
-                "num_villagers": villager_count
+                "num_villager": villager_count
             }
 
 
 
-@router.post("/new_villager")
+@router.get("/catalog")
+def catalog():
+    """
+    Gets the catalog of valid buildings available to build
+    """
+    with db.engine.begin() as connection:
+        select_query =  """
+                            SELECT buildings.name AS type,
+                                catalog.cost AS price
+                            FROM buildings
+                            JOIN catalog ON buildings.id = catalog.building_id
+                        """
+        buildings = connection.execute(sqlalchemy.text(select_query))
+        funds = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM storage WHERE resource_name = 'wood'")).scalar_one()
+
+        types = []
+        costs = []
+        for row in buildings:
+            if row.price < funds:
+                types.append(row.type)
+                costs.append(row.price)
+
+        return {
+            "buildings": types,
+            "costs": costs,
+            "funds": funds
+        }
+
+
+
+
+@router.put("/new_villager")
 def create_villager(villagers: list[Villagers]):
     """
     Creates one or many villagers (id auto incrementing and job_id can start null)
     """
     update_list = list()
     for villager in villagers:
-        update_list.append({"name":villager.name,
-                            "age":villager.age,
-                            "nourishment":villager.nourishment})
-        
+        update_list.append({"age":villager.age,
+                            "nourishment":villager.nourishment,
+                            "job":villager.job_id})
+
     insert_query =  """
-                        INSERT INTO villagers (name, age, nourishment)
-                        VALUES (:name, :age, :nourishment)
+                        INSERT INTO villagers (job_id, age, nourishment)
+                        VALUES (:job, :age, :nourishment)
                     """
 
     with db.engine.begin() as connection:
@@ -67,71 +99,87 @@ def create_villager(villagers: list[Villagers]):
 
     return {"Villager(s) successfully created"}
 
-
-
-@router.get("/villagers_all")
-def get_villagers():
+@router.post("/kill_villager")
+def kill_villager(amount: int):
     """
-    Returns a list of all villagers with their respective attributes. 
-    """
-
-    with db.engine.begin() as connection:
-        villager_list_query =   """
-                                    SELECT villagers.id, 
-                                        villagers.name,
-                                        jobs.job_name,
-                                        villagers.age,
-                                        villagers.nourishment
-                                    FROM villagers
-                                    LEFT JOIN jobs ON villagers.job_id = jobs.id
-                                """
-        result = connection.execute(sqlalchemy.text(villager_list_query)).fetchall()
-
-    villagers = list()
-    for villager in result:
-        villagers.append(
-            {   
-                "id" : villager.id,
-                "name": villager.name,
-                "job": villager.job_name,
-                "age": villager.age,
-                "health": villager.nourishment
-            }
-        )
-
-    return villagers
-
-
-
-@router.get("/buildings/villagers")
-def get_occupying_villagers(building_id : int):
-    """
-    Gets all villagers in building
+    Kills the oldest amount of villagers depending on amount passed in
     """
     with db.engine.begin() as connection:
-
-        villager_list_query =   """
-                                    SELECT villagers.id AS id,
-                                        villagers.name AS name,
-                                        villagers.age AS age,
-                                        jobs.job_name AS job_name
-                                    FROM villagers
-                                    LEFT JOIN jobs ON jobs.id = villagers.job_id
-                                    WHERE building_id = :id
+        kill_villager_query =   """
+                                    DELETE FROM villagers
+                                    WHERE id IN (
+                                        SELECT id FROM villagers
+                                        ORDER BY age DESC
+                                        LIMIT :num
+                                    )
                                 """
-        
-        villagers = connection.execute(sqlalchemy.text(villager_list_query),{"id": building_id}).fetchall()
+        connection.execute(sqlalchemy.text(kill_villager_query),{"num":amount})
 
-    villagers_inside = list()
-    for villager in villagers:
-        villagers_inside.append({
-                                    "id": villager.id, 
-                                    "name": villager.name, 
-                                    "job": villager.job_name,
-                                    "age": villager.age
-                                })
+    return "OK"
 
-    return villagers_inside
+# @router.get("/villagers_all")
+# def get_villagers():
+#     """
+#     Returns a list of all villagers with their respective attributes. 
+#     """
+
+#     with db.engine.begin() as connection:
+#         villager_list_query =   """
+#                                     SELECT villagers.id, 
+#                                         villagers.name,
+#                                         jobs.job_name,
+#                                         villagers.age,
+#                                         villagers.nourishment
+#                                     FROM villagers
+#                                     LEFT JOIN jobs ON villagers.job_id = jobs.id
+#                                 """
+#         result = connection.execute(sqlalchemy.text(villager_list_query)).fetchall()
+
+#     villagers = list()
+#     for villager in result:
+#         villagers.append(
+#             {
+#                 "id" : villager.id,
+#                 "name": villager.name,
+#                 "job": villager.job_name,
+#                 "age": villager.age,
+#                 "health": villager.nourishment
+#             }
+#         )
+
+#     return villagers
+
+
+
+# @router.get("/buildings/villagers")
+# def get_occupying_villagers(building_id : int):
+#     """
+#     Gets all villagers in building
+#     """
+#     with db.engine.begin() as connection:
+
+#         villager_list_query =   """
+#                                     SELECT villagers.id AS id,
+#                                         villagers.name AS name,
+#                                         villagers.age AS age,
+#                                         jobs.job_name AS job_name
+#                                     FROM villagers
+#                                     LEFT JOIN jobs ON jobs.id = villagers.job_id
+#                                     WHERE building_id = :id
+#                                 """
+
+#         villagers = connection.execute(sqlalchemy.text(villager_list_query),{"id": building_id}).fetchall()
+
+#     villagers_inside = list()
+#     for villager in villagers:
+#         villagers_inside.append({
+#                                     "id": villager.id, 
+#                                     "name": villager.name, 
+#                                     "job": villager.job_name,
+#                                     "age": villager.age
+#                                 })
+
+#     return villagers_inside
 
 
 
@@ -144,9 +192,21 @@ def build_structure(buildings: list[Building]):
     # Then just allow them to "buy" it so long as they have correct amount of gold, and if they do subtract a certain
     # quantity of resources and gold?
 
-    created = True
-    return {"success" : created}
-u
+
+    update_list = []
+    for building in buildings:
+        update_list.append({
+            "amount": building.quantity,
+            "id": building.building_name
+        })
+
+    with db.engine.begin() as connection:
+        connection.execute(sqlalchemy.text("UPDATE buildings SET quantity = quantity + :amount WHERE name = :id"), update_list)
+
+    return "OK"
+
+
+
 
 
 @router.put("/fill_inventory")
@@ -156,51 +216,55 @@ def adjust_storage(storages: list[BuildingStorage]):
     Ex: If getting food from farm you would make it 50, but if taking water to give to villagers make
     it -25. Since SQL statement is doing quantity + :quantity 
     """
+    with db.engine.begin() as connection:
+        counts = connection.execute(sqlalchemy.text("SELECT resource_name, COUNT(*) AS tot FROM storage GROUP BY resource_name"))
+
+
     update_list = list()
     for storage in storages:
-        update_list.append({"quantity":storage.amount,
-                            "resource":storage.resource_name,
-                            "building_id":storage.building_id})
-        
-    with db.engine.begin() as connection:
+        for count in counts:
+            if count.resource_name == storage.resource_name:
+                update_list.append({"quantity":storage.amount,
+                                    "resource":storage.resource_name,
+                                    "num":count.tot})
 
+    with db.engine.begin() as connection:
         storage_update_query =  """
                                 UPDATE storage
-                                SET quantity = quantity + :quantity
+                                SET quantity = quantity + :quantity/:num
                                 WHERE resource_name = :resource
-                                    AND building_id = :building_id
                                 """
-        
+
         connection.execute(sqlalchemy.text(storage_update_query),update_list)
-    
+
     return {"Success"}
 
 
 
-@router.post("/building_inventory")
-def view_building_inventory(building_id: int):
-    """
-    Gets inventory of a specific building
-    """
+# @router.post("/building_inventory")
+# def view_building_inventory(building_id: int):
+#     """
+#     Gets inventory of a specific building
+#     """
 
-    with db.engine.begin() as connection:
+#     with db.engine.begin() as connection:
 
-        select_query =   """
-                            SELECT resource_name AS resource,
-                                SUM(storage.quantity) AS quantity
-                            FROM storage
-                            JOIN buildings ON buildings.id = storage.building_id
-                            WHERE building_id = :id
-                            GROUP BY resource
-                         """
-        
-        result = connection.execute(sqlalchemy.text(select_query),{"id": building_id}).fetchall()
-    
-    resources = list()
-    for resource in result:
-        resources.append({"resource_name" : resource.resource,
-                            "amount" : resource.quantity})
-    return resources
+#         select_query =   """
+#                             SELECT resource_name AS resource,
+#                                 SUM(storage.quantity) AS quantity
+#                             FROM storage
+#                             JOIN buildings ON buildings.id = storage.building_id
+#                             WHERE building_id = :id
+#                             GROUP BY resource
+#                          """
+
+#         result = connection.execute(sqlalchemy.text(select_query),{"id": building_id}).fetchall()
+
+#     resources = list()
+#     for resource in result:
+#         resources.append({"resource_name" : resource.resource,
+#                             "amount" : resource.quantity})
+#     return resources
 
 
 
@@ -218,11 +282,10 @@ def view_village_inventory():
                     GROUP BY resource_name
                 """
         resources = connection.execute(sqlalchemy.text(query)).fetchall()
-        
+
     resource_list = list()
     for item in resources:
         resource_list.append({"resource_name" : item.resource,
                                 "quantity" : item.quantity})
-            
+
     return resource_list
-        
