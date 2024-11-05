@@ -23,15 +23,15 @@ class Entity(BaseModel):
 
 
 
-# @router.post("/")
-# def get_eco_overview():
-#     """
-#     Returns a general overview of the ecosystem and its characteristics such as: 
-#     predators and prey and how many there are, the characteristics of each body of water and their id, 
-#     plants and how many there are, resources (trees for wood, mine shafts for mining, etc.).
-#     """
+@router.post("/")
+def get_eco_overview():
+    """
+    Returns a general overview of the ecosystem and its characteristics such as: 
+    predators and prey and how many there are, the characteristics of each body of water and their id, 
+    plants and how many there are, resources (trees for wood, mine shafts for mining, etc.).
+    """
 
-#     return "OK"
+    return "OK"
 
 @router.post("/biomes/")
 def post_biome_counts(biomes: Dict[str, int]):
@@ -49,6 +49,16 @@ def post_biome_counts(biomes: Dict[str, int]):
         if biomes.get("Forest", 0) > 0:
             forest_count = biomes["Forest"]
             insert_values.extend(["('forest')"] * forest_count) 
+
+        if biomes.get("Beach", 0) > 0:
+            forest_count = biomes["Beach"]
+            insert_values.extend(["('beach')"] * forest_count)
+        
+         
+        if biomes.get("Grass", 0) > 0:
+            forest_count = biomes["Grass"]
+            insert_values.extend(["('grass')"] * forest_count)
+
 
         if insert_values:
             all_values = ', '.join(insert_values)
