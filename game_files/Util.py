@@ -1,4 +1,6 @@
-TILESHEET_PATH = "Assets/better-tileset.png"
+import os
+
+TILESHEET_PATH = os.path.join("Assets/", "better-tileset.png")
 SCREEN_HEIGHT = 900
 SCREEN_WIDTH = 1400
 FPS = 60

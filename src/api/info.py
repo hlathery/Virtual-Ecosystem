@@ -10,7 +10,7 @@ class Timestamp(BaseModel):
     month: int
     day: int
     
-@router.post("/info/current_time")
+@router.get("/info/current_time")
 def post_time(timestamp: Timestamp):
     """
     Get current time.

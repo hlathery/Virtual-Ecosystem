@@ -1,7 +1,7 @@
 from fastapi import FastAPI, exceptions
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
-from src.api import admin, expansion, info, village,eco,assignments
+from src.api import admin,info, village,eco,assignments
 import json
 import logging
 
@@ -17,7 +17,6 @@ app = FastAPI(
 )
 
 
-app.include_router(expansion.router)
 app.include_router(admin.router)
 app.include_router(info.router)
 app.include_router(village.router)

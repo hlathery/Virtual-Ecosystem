@@ -16,14 +16,23 @@ class Jobs(BaseModel):
     villagers_assigned: int
 
 
-@router.get("/")
+@router.get("/get_job_list")
 def get_job_list():
     """
     Returns a list of all jobs and the amount of active workers at each job.
     """
 
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("SELECT jobs.id AS id, jobs.job_name AS name, COUNT(villagers.job_id) AS quantity FROM jobs LEFT JOIN villagers ON jobs.id = villagers.job_id GROUP BY jobs.id, job_name"))
+
+        job_list_query = """ 
+                            SELECT jobs.id AS id,
+                                jobs.job_name AS name,
+                                COUNT(villagers.job_id) AS quantity
+                            FROM jobs
+                            LEFT JOIN villagers ON jobs.id = villagers.job_id
+                            GROUP BY jobs.id, job_name
+                        """
+        result = connection.execute(sqlalchemy.text(job_list_query))
 
     job_list = []
     for row in result:
@@ -34,11 +43,11 @@ def get_job_list():
                 "villagers_assigned": row.quantity
             }
         )
-
+    
     return job_list
 
-@router.post("/plan")
-def assign_villager(job_list: list[dict]):
+@router.put("/assign_villager")
+def assign_villager(job_list: list[Jobs]):
     """
     The call passes in a catalog of each job type and how many villagers are working in each job type. 
     The user would return back new values, if any, of how many villagers they want in each job.
@@ -47,7 +56,18 @@ def assign_villager(job_list: list[dict]):
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text("UPDATE villagers SET job_id = 0"))
         for job in job_list:
-            if job["villagers_assigned"] > 0:
-                connection.execute(sqlalchemy.text(f"UPDATE villagers SET job_id = {job['job_id']} WHERE id IN (SELECT id FROM (SELECT id FROM villagers ORDER BY id ASC LIMIT {job['villagers_assigned']}) tmp) AND job_id = 0"))
+            if job.villagers_assigned > 0:
+                update_query =  """
+                                    UPDATE villagers
+                                    SET job_id = :job_id
+                                    WHERE id IN (
+                                        SELECT id FROM villagers
+                                        WHERE job_id = 0
+                                        LIMIT :villagers_asn
+                                    )
+                                """
+                connection.execute(sqlalchemy.text(update_query),{ "job_id" : job.job_id,
+                                                                    "villagers_asn" : job.villagers_assigned
+                                                                    })
 
     return "OK"

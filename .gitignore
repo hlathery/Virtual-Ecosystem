@@ -1,0 +1,10 @@
+.vercel
+.venv
+venv
+.idea
+__pycache__
+/.env
+info.log
+.__pycache__
+.pyc
+/.pyc
