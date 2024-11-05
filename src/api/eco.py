@@ -5,6 +5,7 @@ import sqlalchemy
 from sqlalchemy import update
 from sqlalchemy.orm import session
 from src import database as db
+from typing import Dict
 
 router = APIRouter(
     prefix="/eco",
@@ -31,6 +32,24 @@ class Entity(BaseModel):
 #     """
 
 #     return "OK"
+
+@router.post("/biomes/")
+def post_biome_counts(biomes: Dict[str, int]):
+    """
+    Posts the biome counts from flood fill.
+    """
+    ocean_values = ", ".join(["('ocean')"] * biomes.get("Ocean", 0))
+    forest_values = ", ".join(["('forest')"] * biomes.get("Forest", 0))
+
+    with db.engine.begin() as connection:
+
+        if biomes.get("Ocean", 0) > 0:
+            connection.execute(sqlalchemy.text(f"INSERT INTO biomes (biome_type) VALUES (:ocean_values)"),
+                               {"ocean_values": ocean_values})
+        
+        if biomes.get("Forest", 0) > 0:
+            connection.execute(sqlalchemy.text(f"INSERT INTO biomes (biome_type) VALUES (:forest_values)"),
+                               {"forest_values": forest_values})
 
 @router.put("/grow_plants")
 def grow_plants(plants_to_grow: list[Entity]):
