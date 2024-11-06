@@ -132,7 +132,7 @@ class WorldDrawer:
                 c = 0
                 for i in range(0, len(overview["buildings"])):
                     self.draw_text(overview["buildings"][i], (255,255,255), x+5, y+55+((interval+height)*c))
-                    self.draw_text(f"{overview['num_buildings']}", (255,255,255), x+375, y+55+((interval+height)*c))
+                    self.draw_text(f"{overview['num_buildings'][i]}", (255,255,255), x+375, y+55+((interval+height)*c))
                     c += 1
                 for job in job_list:
                     self.draw_text(job["job_title"], (255,255,255), x+5, y+55+((interval+height)*c))
