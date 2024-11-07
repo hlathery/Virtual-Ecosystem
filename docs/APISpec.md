@@ -173,9 +173,10 @@ Allows the user to plant seeds for trees and plants
 ```json
 [
     { 
-        "resource_name": "string", 
-        "amount": "int", 
-        "biome_id": "int" 
+        "quantity": "int",
+        "nourishment": "int",
+        "entity_type": "string", /* Should be "plants" */
+        "biome_id": "int"
     }
 ]
 ```
@@ -188,29 +189,29 @@ Allows the user to plant seeds for trees and plants
 }
 ``` 
 
-### 2.2. View plants - `/eco/trees/` (GET)  
+### 2.2. View plants - `/eco/plants/` (GET)  
 
 **Response:** 
 
 ```json
 [
     { 
-        "plant_id": "int", 
-        "amount": "int" 
+        "entity_type": "string", /* Should be "plants" */
+        "quantity": "int" 
     }
 ]
 ``` 
 
-### 2.3. View prey -`eco/life/prey/` (GET)
-View overall prey(?)
+### 2.3. View prey -`eco/prey/` (GET)
+View overall prey
 
 **Response:** 
 
 ```json
 [
     { 
-        "prey_id": "int", 
-        "amount": "int" 
+        "entity_type": "string", /* Should be prey */ 
+        "quantity": "int" 
     }
 ] 
 ```
@@ -249,10 +250,10 @@ the number of prey (maybe they died due to nourshiment or killed off by hunters/
 ```json
 [
     { 
-        "prey_id": "int", 
-        "nourishment": "int", 
-        "amount": "int", 
-        "biome_id": "int" 
+        "quantity": "int",
+        "nourishment": "int",
+        "entity_type": "string", /* Should be "prey" */
+        "biome_id": "int"
     }
 ]
 ``` 
@@ -265,25 +266,15 @@ the number of prey (maybe they died due to nourshiment or killed off by hunters/
 }
 ``` 
 
-### 2.6. View prey in biome -`/eco/prey/` (GET)
+### 2.6. View prey in biome -`/eco/prey/{biome_id}` (GET)
 Grabbing prey given a specific biome
-
-**Request:** 
-
-```json
-[
-    { 
-        "biome_id": "int" 
-    }
-]
-``` 
 
 **Response:** 
 
 ```json
 [
     { 
-        "prey_id": "int", 
+        "entity_type": "string", /* Should be "prey" */ 
         "amount": "int" 
     }
 ]
@@ -297,11 +288,11 @@ the number of prey (maybe they died due to nourshiment or killed off by hunters/
 
 ```json
 [
-    { 
-        "predator_id": "int", 
-        "nourishment": "int", 
-        "amount": "int", 
-        "biome_id": "int" 
+    {
+        "quantity": "int",
+        "nourishment": "int",
+        "entity_type": "string", /* Should be "predator" */
+        "biome_id": "int"
     }
 ]
 ```
@@ -314,25 +305,15 @@ the number of prey (maybe they died due to nourshiment or killed off by hunters/
 }
 ``` 
 
-### 2.8. View predators - `/eco/predator` (POST)
+### 2.8. View predators - `/eco/predator/{biome_id}` (GET)
 View total amount predators in a specific biome 
-
-**Request:** 
-
-```json
-[
-    { 
-        "biome_id": "int" 
-    }
-]
-```
 
 **Response:** 
 
 ```json
 [
     { 
-        "predator_id": "int", 
+        "entity_type": "string", /* Should be "predator" */ 
         "amount": "int" 
     }
 ] 
