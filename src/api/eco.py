@@ -56,6 +56,10 @@ def grow_plants(plants_to_grow: list[Entity]):
     """
     Takes in a request that contains of list of plant seeds to be planted in the 
     requested biome
+    AVAILABLE BIOMES (biome_id : name)
+    1 : Forest
+    2 : Grasslands
+    3 : Beach
     """
     with db.engine.begin() as connection:
         plants_list = []
@@ -150,6 +154,10 @@ def prey_overview():
 def spawn_prey(prey_to_spawn : list[Entity]):
     """
     Takes in a list of prey to be spawned in the requested biome
+    AVAILABLE BIOMES (biome_id : name)
+    1 : Forest
+    2 : Grasslands
+    3 : Beach
     """
     with db.engine.begin() as connection:
         prey_list = []
@@ -177,6 +185,10 @@ def spawn_prey(prey_to_spawn : list[Entity]):
 def biome_prey(biome_id : int):
     """
     Returns the amount of prey in the requested biome 
+    AVAILABLE BIOMES (biome_id : name)
+    1 : Forest
+    2 : Grasslands
+    3 : Beach
     """
     with db.engine.begin() as connection:
         prey_query = """
@@ -203,6 +215,10 @@ def biome_prey(biome_id : int):
 def spawn_predator(predators_to_spawn: list[Entity]):
     """
     Takes in a list of predators and spawns them in their respective biome
+    AVAILABLE BIOMES (biome_id : name)
+    1 : Forest
+    2 : Grasslands
+    3 : Beach
     """
     with db.engine.begin() as connection:
         predator_list = []
@@ -230,6 +246,10 @@ def spawn_predator(predators_to_spawn: list[Entity]):
 def biome_predator(biome_id: int):
     """
     Returns a list of predator and their amounts in the requested biome
+    AVAILABLE BIOMES (biome_id : name)
+    1 : Forest
+    2 : Grasslands
+    3 : Beach
     """
     with db.engine.begin() as connection:
         predator_query = """
