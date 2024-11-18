@@ -39,48 +39,7 @@ Creates a new villager, unassigned
     }
 ``` 
 
-### 1.3. All villagers - `village/villagers_all/` (GET) 
-Returns a list of all villagers with their respective attributes.
-
-**Response:** 
-
-```json
-[
-    { 
-        "id": "int", 
-        "name": "string", 
-        "job" : "string",
-        "age" : "int",
-        "health": "int"
-    }
-]
-```
-
-### 1.4. Villagers in building - `village/buildings/villagers/` (GET) 
-Returns all villagers in a building
-
-**Request:**
-
-```json
-{
-    "building_id": "int"
-} 
-```
-
-**Response:** 
-
-```json
-[
-    { 
-        "id": "int", 
-        "name": "string", 
-        "job" : "string",
-        "age" : "int"
-    }
-]
-```  
-
-### 1.5. Build structure - `/village/build_building` (POST) 
+### 1.3. Build structure - `/village/build_building` (POST) 
 
 **Request:** 
 
@@ -102,7 +61,7 @@ Returns all villagers in a building
 }
 ``` 
 
-### 1.6. Adjust storage `/village/fill_inventory` (PUT) 
+### 1.4. Adjust storage `/village/fill_inventory` (PUT) 
 Fill inventory of specific building(s)
 
 **Request:** 
@@ -125,29 +84,7 @@ Fill inventory of specific building(s)
 }
 ``` 
 
-### 1.7. View building inventory - `/village/building_inventory` (POST)
-Gets inventory of specific building  
-
-**Request:** 
-
-```json
-{
-    "building_id": "int"
-}
-``` 
-
-**Response:** 
-
-```json
-[
-    { 
-        "resource_name": "string", 
-        "amount": "int" 
-    }
-]
-``` 
-
-### 1.8. View village inventory `/village/village_inventory/` (GET) 
+### 1.5. View village inventory `/village/village_inventory/` (GET) 
 Gets inventory across all buildings
 
 **Response:** 
