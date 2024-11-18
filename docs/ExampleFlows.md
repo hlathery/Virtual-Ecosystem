@@ -18,7 +18,7 @@ village structures
 A user is between decisions either regretful or proud of what they have done to their people or their environment.
 They want to see specific numbers but have to wait until the decision time. Once the decision time comes, the user calls `GET /eco/`.
 The user sees that they have hunted far too much prey and have nearly made them extinct.
-To simplify the data they are looking at they call `GET /eco/prey/` and `GET /eco/predators/{biome_id} `to make a comparison between the number of predators and prey.
+To simplify the data they are looking at they call `GET /eco/prey/` and `GET /eco/predators/ `to make a comparison between the number of predators and prey.
 They see that the predator to prey ratio is 15:1 so, with this new info, they make the informed decision of taking the risk of mainly hunting predators for the year.
 They then go to make village decisions and, to inform themselves on this front, they call `GET /village/`.
 Upon looking through the data they notice they have the wood to build more buildings and some villagers are unemployed.
