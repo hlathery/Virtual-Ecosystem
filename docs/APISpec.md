@@ -122,15 +122,9 @@ Gets inventory across all buildings
 All API calls for the ecosystem.
 
 
-**Response:** 
-
-```json
-{
-    "success": "boolean"
-}
-``` 
-
 ### 2.1. View plants - `/eco/plants/` (GET)  
+
+Grabs the total sum nourishment of plants of the entire ecosystem
 
 **Response:** 
 
@@ -138,46 +132,20 @@ All API calls for the ecosystem.
 [
     { 
         "entity_type": "string", 
-        "quantity": "int" 
+        "nourishment": "int" 
     }
 ]
 ``` 
+ 
 
-### 2.2. Collect water - `/eco/grab_water` (PUT) 
-
-Allows user to collect water as needed for village
-
-**Request:** 
-
-```json
-[
-    { 
-        "water_id": "int", 
-        "amount": "int", 
-        "nourishment": "int",
-        "biome_id": "int" 
-    }
-] 
-```
-
-**Response:** 
-
-```json
-{
-    "success": "boolean"
-}
-``` 
-
-### 2.3. Spawn entity - `/eco/entity` (POST)
-Spawning entities to a specific biome, worth noting this call can also reduce 
-the number of entities
+### 2.2. Spawn entity - `/eco/entity` (POST)
+Spawns entities to a specific biome. User controls plants, predators, prey, and trees to spawn.
 
 **Request:** 
 
 ```json
 [
     { 
-        "quantity": "int",
         "nourishment": "int",
         "entity_type": "string",
         "biome_id": "int"
@@ -193,8 +161,8 @@ the number of entities
 }
 ``` 
 
-### 2.4. View prey in biome -`/eco/prey/{biome_id}` (GET)
-Grabbing prey given a specific biome
+### 2.3. View prey in biome -`/eco/prey/{biome_id}` (GET)
+Grabbing nourishment of prey given a specific biome
 
 **Response:** 
 
@@ -202,13 +170,13 @@ Grabbing prey given a specific biome
 [
     { 
         "entity_type": "string",
-        "amount": "int" 
+        "nourishment": "int" 
     }
 ]
 ``` 
 
-### 2.5. View predators - `/eco/predator/{biome_id}` (GET)
-View total amount predators in a specific biome 
+### 2.4. View predators - `/eco/predator/{biome_id}` (GET)
+Grabbing nourishment of predators given a specific biome 
 
 **Response:** 
 
@@ -216,7 +184,7 @@ View total amount predators in a specific biome
 [
     { 
         "entity_type": "string",
-        "amount": "int" 
+        "nourishment": "int" 
     }
 ] 
 ```

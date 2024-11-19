@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
 from src.api import auth
 import sqlalchemy
@@ -15,14 +15,13 @@ router = APIRouter(
 )
 
 class EntityType(str, Enum):
-    predator = "predator"
+    predators = "predators"
     prey = "prey"
-    tree = "tree"
+    trees = "trees"
     plants = "plants"
     water = "water"
 
 class Entity(BaseModel):
-    # ent_id: int
     quantity: int
     nourishment: int
     entity_type: EntityType
@@ -61,16 +60,16 @@ def post_biome_counts(biomes: Dict[str, int]):
 
 
 
-@router.get("/plants/")
+@router.get("/plants/", status_code = status.HTTP_200_OK, response_description="Success")
 def plants_overview():
     """
-    Returns the amount of plants in the entire ecosystem
+    Returns the total nourishment of plants in the entire ecosystem
     """
     
     plants_query =  """
                         SELECT entity_type AS type, 
-                            SUM(quantity) AS total
-                        FROM entitys
+                            SUM(nourishment) AS nourishment
+                        FROM entities
                         WHERE entity_type = 'plants'
                         GROUP BY entity_type
                     """
@@ -78,63 +77,47 @@ def plants_overview():
     with db.engine.begin() as connection:
         plants_table = connection.execute(sqlalchemy.text(plants_query)).fetchone()
         entity_type = plants_table.type
-        total = plants_table.total
+        total = plants_table.nourishment
 
     return {"entity_type": entity_type,
-            "quantity": total}
+            "nourishment": total}
     
 
-# @router.put("/grab_water")
-# def collect_water(water_bodies: list[Entity]):
-#     """
-#     The call takes in a list of bodies of water that the user will harvest water from 
-#     """
-#     return "OK"
-
-
-
-
-@router.post("/entity")
-def spawn_entity(prey_to_spawn : list[Entity]):
+    
+@router.post("/entity", status_code = status.HTTP_201_CREATED, response_description="Success Creation")
+def spawn_entity(entity_to_spawn : list[Entity]):
     """
     Takes in a list of entities to be spawned in the requested biome
-    AVAILABLE BIOMES (biome_id : name)
-    1 : Forest
-    2 : Grasslands
-    3 : Beach
     """
     with db.engine.begin() as connection:
         entity_list = []
-        for entity in prey_to_spawn:
+        for entity in entity_to_spawn:
             entity_list.append({"nourishment": entity.nourishment,
                                 "entity_type": entity.entity_type,
                                 "biome_id": entity.biome_id})    
-        prey_query = """
-                        UPDATE entitys
+        entity_query = """
+                        UPDATE entities
                         SET nourishment = nourishment + :nourishment
                         WHERE entity_type = :entity_type
                             AND biome_id = :biome_id
                       """
-        connection.execute(sqlalchemy.text(prey_query),entity_list)
-    return "OK"
+        connection.execute(sqlalchemy.text(entity_query),entity_list)
+    return {"success"}
     
 
 
 
-@router.get("/prey/{biome_id}")
+@router.get("/prey/{biome_id}", status_code = status.HTTP_200_OK, response_description="Success")
 def biome_prey(biome_id : int):
     """
-    Returns the amount of prey in the requested biome 
-    AVAILABLE BIOMES (biome_id : name)
-    1 : Forest
-    2 : Grasslands
-    3 : Beach
+    Returns the nourishment of prey in the requested biome 
     """
     with db.engine.begin() as connection:
+        
         prey_query = """
                         SELECT entity_type AS type, 
-                            SUM(quantity) AS total
-                        FROM entitys
+                            SUM(nourishment) AS nourishment
+                        FROM entities
                         WHERE entity_type = 'prey'
                             AND biome_id = :biome_id
                         GROUP BY entity_type
@@ -142,38 +125,34 @@ def biome_prey(biome_id : int):
         prey = connection.execute(sqlalchemy.text(prey_query), {"biome_id":biome_id}).fetchone()
 
     entity_type = prey.type
-    amount = prey.total
+    amount = prey.nourishment
     return({
         "entity_type": entity_type,
-        "amount": amount
+        "nourishment": amount
     })
 
 
-@router.get("/predator/{biome_id}")
+@router.get("/predator/{biome_id}", status_code = status.HTTP_200_OK, response_description="Success")
 def biome_predator(biome_id: int):
     """
-    Returns a list of predator and their amounts in the requested biome
-    AVAILABLE BIOMES (biome_id : name)
-    1 : Forest
-    2 : Grasslands
-    3 : Beach
+    Returns a list of predator and their nourishment in the requested biome
     """
     with db.engine.begin() as connection:
         predator_query = """
                         SELECT entity_type AS type, 
-                            SUM(quantity) AS total
-                        FROM entitys
-                        WHERE entity_type = 'predator'
+                            SUM(nourishment) AS nourishment
+                        FROM entities
+                        WHERE entity_type = 'predators'
                             AND biome_id = :biome_id
                         GROUP BY entity_type
                      """
         predator = connection.execute(sqlalchemy.text(predator_query), {"biome_id":biome_id}).fetchone()
 
     entity_type = predator.type
-    amount = predator.total
+    nourish_amount = predator.nourishment
     return({
         "entity_type": entity_type,
-        "amount": amount
+        "nourishment": nourish_amount
     })
 
 
