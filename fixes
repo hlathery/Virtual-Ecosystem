@@ -1,0 +1,70 @@
+Timothy Code Review 
+
+1. You can make prey_overview more readable when setting entity_type and total by using prey_table.entity_type and prey_table.Total, respectively.
+
+    Fixed, added an AS for type aswell. So -> prey_table.type and prey_table.total
+
+
+2. It's very hard to read the first two lines of post_biome_counts. I'd say either clean it up or comment on what's going on.
+
+    NEED FIX OR DEBATE
+
+3. See x but for plants_overview. 
+
+    Fixed, same as #1
+
+
+4. Why are results being put in a list if there's only on item in plants_overview and prey_overview? I think it should be a single object instead of a list.
+
+    Fixed, just handled with existing fetchone() and .table_name respectively.
+
+
+5. In spawn_prey, it seems perfectly set up to be legerized instead of just updating values. 
+    Almost all that would need to happen would be change it from update to insert. Would be easier than looking for individual lines to update.
+
+    NEED FIX OR DEBATE
+
+
+6. See x but for biome_prey. 
+
+    Fixed, same as #1
+
+
+7. See x but for biome_predator
+
+    Fixed, same as #1
+
+
+8. What is the point of the post_time function? 
+
+    Fixed, completely removed this file, as we'll handle time seperately in our game if it requires
+
+
+9. With how your set up is right now, I'd recommend being able to choose which villager to kill off via ids in kill_villagers, 
+    instead of just killing the oldest ones. Could also be interesting if there were something like natural disasters in the game.
+
+    NEED FIX OR DEBATE
+
+
+10. Should there be checks in build_structures? At the moment it looks as though anything could be bought without care for money. 
+    It also does not subtract resources used, so even if I were to play the game as intended, 
+    only buying what I were supposed to, it would cost me no money.
+
+    NEED FIX OR DEBATE (I did handle some sanitation, but we still need to subtract cost)
+
+
+11. In adjust_storage, do the materials need to be split across all buildings like it is? How you are treating it right now, 
+    it seems like it would be easier and have the same effect if you were to just keep one storage place, and add storage to it if any buildings are bought.
+
+    We will not be implementing this because currently we are just keeping our buildings as their own individual storage, and will SUM on the go when we want a total overview
+
+
+12. For the code in assign_villager, it looks like a different style of multi-line input to sqlalchemy is being used. 
+    I think that the other style used, where a single text is created and multiple dictionaries are passed, looks like it would work better.
+
+    Fixed, added bulk update, and removed connection from for loop
+
+
+
+
+

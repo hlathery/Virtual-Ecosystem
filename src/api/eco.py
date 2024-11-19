@@ -66,10 +66,10 @@ def plants_overview():
     """
     Returns the amount of plants in the entire ecosystem
     """
-    plants_list = []
+    
     plants_query =  """
-                        SELECT entity_type, 
-                            SUM(quantity) as Total
+                        SELECT entity_type AS type, 
+                            SUM(quantity) AS total
                         FROM entitys
                         WHERE entity_type = 'plants'
                         GROUP BY entity_type
@@ -77,16 +77,11 @@ def plants_overview():
     
     with db.engine.begin() as connection:
         plants_table = connection.execute(sqlalchemy.text(plants_query)).fetchone()
-        entity_type = plants_table[0]
-        total = plants_table[1]
+        entity_type = plants_table.type
+        total = plants_table.total
 
-        plants_list.append({
-            "entity_type": entity_type,
-            "quantity": total
-        })
-        
-    print(f"Total plants in ecosystem: {plants_list} ")
-    return plants_list
+    return {"entity_type": entity_type,
+            "quantity": total}
     
 
 # @router.put("/grab_water")
@@ -137,8 +132,8 @@ def biome_prey(biome_id : int):
     """
     with db.engine.begin() as connection:
         prey_query = """
-                        SELECT entity_type, 
-                            SUM(quantity) as Total
+                        SELECT entity_type AS type, 
+                            SUM(quantity) AS total
                         FROM entitys
                         WHERE entity_type = 'prey'
                             AND biome_id = :biome_id
@@ -146,8 +141,8 @@ def biome_prey(biome_id : int):
                      """
         prey = connection.execute(sqlalchemy.text(prey_query), {"biome_id":biome_id}).fetchone()
 
-    entity_type = prey[0]
-    amount = prey[1]
+    entity_type = prey.type
+    amount = prey.total
     return({
         "entity_type": entity_type,
         "amount": amount
@@ -165,8 +160,8 @@ def biome_predator(biome_id: int):
     """
     with db.engine.begin() as connection:
         predator_query = """
-                        SELECT entity_type, 
-                            SUM(quantity) as Total
+                        SELECT entity_type AS type, 
+                            SUM(quantity) AS total
                         FROM entitys
                         WHERE entity_type = 'predator'
                             AND biome_id = :biome_id
@@ -174,8 +169,8 @@ def biome_predator(biome_id: int):
                      """
         predator = connection.execute(sqlalchemy.text(predator_query), {"biome_id":biome_id}).fetchone()
 
-    entity_type = predator[0]
-    amount = predator[1]
+    entity_type = predator.type
+    amount = predator.total
     return({
         "entity_type": entity_type,
         "amount": amount
