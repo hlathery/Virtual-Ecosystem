@@ -44,11 +44,11 @@ def post_biome_counts(biomes: Dict[str, int]):
     with db.engine.begin() as connection:
 
         if biomes.get("Ocean", 0) > 0:
-            connection.execute(sqlalchemy.text(f"INSERT INTO biomes (biome_type) VALUES (:ocean_values)"),
+            connection.execute(sqlalchemy.text("INSERT INTO biomes (biome_type) VALUES (:ocean_values)"),
                                {"ocean_values": ocean_values})
         
         if biomes.get("Forest", 0) > 0:
-            connection.execute(sqlalchemy.text(f"INSERT INTO biomes (biome_type) VALUES (:forest_values)"),
+            connection.execute(sqlalchemy.text("INSERT INTO biomes (biome_type) VALUES (:forest_values)"),
                                {"forest_values": forest_values})
 
 @router.put("/grow_plants")
@@ -150,22 +150,22 @@ def prey_overview():
 
 
 
-@router.post("/spawn_prey")
-def spawn_prey(prey_to_spawn : list[Entity]):
+@router.post("/entity")
+def spawn_entity(prey_to_spawn : list[Entity]):
     """
-    Takes in a list of prey to be spawned in the requested biome
+    Takes in a list of entities to be spawned in the requested biome
     AVAILABLE BIOMES (biome_id : name)
     1 : Forest
     2 : Grasslands
     3 : Beach
     """
     with db.engine.begin() as connection:
-        prey_list = []
-        for prey in prey_to_spawn:
-            prey_list.append({ "quantity": prey.quantity,
-                                "nourishment": prey.nourishment,
-                                "entity_type": prey.entity_type,
-                                "biome_id": prey.biome_id})    
+        entity_list = []
+        for entity in prey_to_spawn:
+            entity_list.append({ "quantity": entity.quantity,
+                                "nourishment": entity.nourishment,
+                                "entity_type": entity.entity_type,
+                                "biome_id": entity.biome_id})    
         prey_query = """
                         UPDATE entitys
                         SET quantity = quantity + :quantity,
@@ -173,9 +173,7 @@ def spawn_prey(prey_to_spawn : list[Entity]):
                         WHERE entity_type = :entity_type
                             AND biome_id = :biome_id
                       """
-        connection.execute(sqlalchemy.text(prey_query),prey_list)
-
-    
+        connection.execute(sqlalchemy.text(prey_query),entity_list)
     return "OK"
     
 
@@ -207,39 +205,6 @@ def biome_prey(biome_id : int):
         "entity_type": entity_type,
         "amount": amount
     })
-
-
-
-
-@router.post("/spawn_predator/")
-def spawn_predator(predators_to_spawn: list[Entity]):
-    """
-    Takes in a list of predators and spawns them in their respective biome
-    AVAILABLE BIOMES (biome_id : name)
-    1 : Forest
-    2 : Grasslands
-    3 : Beach
-    """
-    with db.engine.begin() as connection:
-        predator_list = []
-        for predator in predators_to_spawn:
-            predator_list.append({ "quantity": predator.quantity,
-                                "nourishment": predator.nourishment,
-                                "entity_type": predator.entity_type,
-                                "biome_id": predator.biome_id})    
-        predator_query = """
-                        UPDATE entitys
-                        SET quantity = quantity + :quantity,
-                            nourishment = nourishment + :nourishment
-                        WHERE entity_type = :entity_type
-                            AND biome_id = :biome_id
-                      """
-        connection.execute(sqlalchemy.text(predator_query),predator_list)
-
-    
-    return "OK"
-
-
 
 
 @router.get("/predator/{biome_id}")

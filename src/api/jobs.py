@@ -5,8 +5,8 @@ from src import database as db
 import sqlalchemy
 
 router = APIRouter(
-    prefix="/assignments",
-    tags=["assignments"],
+    prefix="/jobs",
+    tags=["jobs"],
     dependencies=[Depends(auth.get_api_key)],
 )
 
@@ -16,7 +16,7 @@ class Jobs(BaseModel):
     villagers_assigned: int
 
 
-@router.get("/get_job_list")
+@router.get("/")
 def get_job_list():
     """
     Returns a list of all jobs and the amount of active workers at each job.
@@ -46,7 +46,7 @@ def get_job_list():
     
     return job_list
 
-@router.put("/assign_villager")
+@router.put("/assignments")
 def assign_villager(job_list: list[Jobs]):
     """
     The call passes in a catalog of each job type and how many villagers are working in each job type. 

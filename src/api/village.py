@@ -78,7 +78,7 @@ def catalog():
 
 
 
-@router.put("/new_villager")
+@router.put("/villager")
 def create_villager(villagers: list[Villagers]):
     """
     Creates one or many villagers (id auto incrementing and job_id can start null)
@@ -99,8 +99,8 @@ def create_villager(villagers: list[Villagers]):
 
     return {"Villager(s) successfully created"}
 
-@router.post("/kill_villager")
-def kill_villager(amount: int):
+@router.delete("/villager")
+def remove_villager(amount: int):
     """
     Kills the oldest amount of villagers depending on amount passed in
     """
@@ -123,10 +123,6 @@ def build_structure(buildings: list[Building]):
     """
     Takes in buildings user wants to build
     """
-    # Not sure what this part is doing in spec, couldn't we just take in an id based on what item they clicked on the catalog.
-    # Then just allow them to "buy" it so long as they have correct amount of gold, and if they do subtract a certain
-    # quantity of resources and gold?
-
 
     update_list = []
     for building in buildings:

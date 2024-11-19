@@ -1,7 +1,8 @@
 from fastapi import FastAPI, exceptions
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
-from src.api import admin,info, village,eco,assignments
+from . import jobs
+from src.api import admin,info, village,eco
 import json
 import logging
 
@@ -21,7 +22,7 @@ app.include_router(admin.router)
 app.include_router(info.router)
 app.include_router(village.router)
 app.include_router(eco.router)
-app.include_router(assignments.router)
+app.include_router(jobs.router)
 
 @app.exception_handler(exceptions.RequestValidationError)
 @app.exception_handler(ValidationError)
@@ -36,4 +37,4 @@ async def validation_exception_handler(request, exc):
 
 @app.get("/")
 async def root():
-    return {"message": "Another cool message here"}
+    return {"message": "Welcome to the virtual ecosystem game"}

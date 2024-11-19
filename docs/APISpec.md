@@ -16,7 +16,7 @@ Returns an overview of the village
     } 
 ```
 
-### 1.2. Create villager - `/new_villager` (POST)
+### 1.2. Create villager - `/villager` (POST)
 Creates a new villager, unassigned 
 
 **Request:** 
@@ -39,7 +39,28 @@ Creates a new villager, unassigned
     }
 ``` 
 
-### 1.3. Build structure - `/village/build_building` (POST) 
+### 1.3 Remove villager - `/villager` (DELETE)
+Kills the oldest amount of villagers depending on amount passed in
+
+**Request:** 
+```json
+[
+    { 
+        "amount": "int" 
+    }
+] 
+```
+
+**Response:**  
+
+```json
+    {
+        "success": "boolean"
+    }
+``` 
+
+
+### 1.4. Build structure - `/village/build_building` (POST) 
 
 **Request:** 
 
@@ -61,7 +82,7 @@ Creates a new villager, unassigned
 }
 ``` 
 
-### 1.4. Adjust storage `/village/fill_inventory` (PUT) 
+### 1.5. Adjust storage `/village/fill_inventory` (PUT) 
 Fill inventory of specific building(s)
 
 **Request:** 
@@ -84,7 +105,7 @@ Fill inventory of specific building(s)
 }
 ``` 
 
-### 1.5. View village inventory `/village/village_inventory/` (GET) 
+### 1.6. View village inventory `/village/village_inventory/` (GET) 
 Gets inventory across all buildings
 
 **Response:** 
@@ -178,9 +199,9 @@ Allows user to collect water as needed for village
 }
 ``` 
 
-### 2.5. Spawn prey - `/eco/spawn_prey` (POST)
-Spawning prey to a specific biome, worth noting this call can also reduce 
-the number of prey (maybe they died due to nourshiment or killed off by hunters/predators) 
+### 2.5. Spawn entity - `/eco/entity` (POST)
+Spawning entities to a specific biome, worth noting this call can also reduce 
+the number of entities (maybe they died due to nourshiment or killed off by hunters/predators) 
 
 **Request:** 
 
@@ -189,7 +210,7 @@ the number of prey (maybe they died due to nourshiment or killed off by hunters/
     { 
         "quantity": "int",
         "nourishment": "int",
-        "entity_type": "string", /* Should be "prey" */
+        "entity_type": "string",
         "biome_id": "int"
     }
 ]
@@ -217,32 +238,7 @@ Grabbing prey given a specific biome
 ]
 ``` 
 
-### 2.7. Spawn predator -`/eco/spawn_predator` (POST)
-Spawning predator to a specific biome, worth noting this call can also reduce
-the number of prey (maybe they died due to nourshiment or killed off by hunters/predators)
-
-**Request:** 
-
-```json
-[
-    {
-        "quantity": "int",
-        "nourishment": "int",
-        "entity_type": "string", /* Should be "predator" */
-        "biome_id": "int"
-    }
-]
-```
-
-**Response:** 
-
-```json
-{
-    "success": "boolean"
-}
-``` 
-
-### 2.8. View predators - `/eco/predator/{biome_id}` (GET)
+### 2.7. View predators - `/eco/predator/{biome_id}` (GET)
 View total amount predators in a specific biome 
 
 **Response:** 
@@ -256,11 +252,11 @@ View total amount predators in a specific biome
 ] 
 ```
 
-## 3. Assignments
+## 3. Jobs
 
 Used for assigning jobs
 
-### 3.1. Get job list - `assignments/get_job_list/` (GET)
+### 3.1. Get job list - `jobs/` (GET)
 
 **Response:**
 
@@ -273,7 +269,7 @@ Used for assigning jobs
 ]
 ```
 
-### 3.2. Assign job - `assignments/assign_villager` (PUT)
+### 3.2. Assign job - `jobs/assignments` (PUT)
 
 **Request:** 
 

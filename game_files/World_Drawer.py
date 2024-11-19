@@ -19,7 +19,7 @@ class WorldDrawer:
         self.font = pygame.font.SysFont(None, 20)
         self.get_headers = {"accept": "application/json", "access_token": "hlath"}
         self.post_headers = {"accept": "application/json", "access_token": "hlath", "Content-Type": "application/json"}
-        self.menu_options = ["Catalog", "Village Info", "Assignments", "Eco Info"]
+        self.menu_options = ["Catalog", "Village Info", "Jobs", "Eco Info"]
         self.eco = {"Water Bodies":0, "Forests":0, "Grass":0, "Desert":0}
 
         if __name__ == "__main__":
@@ -74,7 +74,7 @@ class WorldDrawer:
         y = 250
         option = "Catalog"
         build = []
-        job_list = requests.get("http://127.0.0.1:3000/assignments/get_job_list", headers=self.get_headers).json()
+        job_list = requests.get("http://127.0.0.1:3000/jobs/", headers=self.get_headers).json()
         overview = requests.get("http://127.0.0.1:3000/village/", headers=self.get_headers).json()
         catalog_list = requests.get("http://127.0.0.1:3000/village/catalog", headers=self.get_headers).json()
         while menu:
@@ -139,7 +139,7 @@ class WorldDrawer:
                 self.draw_text("Population", (255,255,255), x+5, y+55+((interval+height)*c))
                 self.draw_text(f"{overview['num_villager']}", (255,255,255), x+375, y+55+((interval+height)*c))
 
-            elif option == "Assignments":
+            elif option == "Jobs":
                 interval = 15
                 height = 20
                 c = 1
@@ -205,7 +205,7 @@ class WorldDrawer:
             click = False
             click, menu = self.wait_key()
             if menu == False:
-                res = requests.put("http://127.0.0.1:3000/assignments/assign_villager", json=job_list, headers=self.post_headers)
+                res = requests.put("http://127.0.0.1:3000/jobs/assignments", json=job_list, headers=self.post_headers)
                 res = requests.post("http://127.0.0.1:3000/village/build_building", json=build, data=catalog_list["funds"], headers=self.post_headers)
 
 
