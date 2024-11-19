@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from src.api import auth
 from src import database as db
+from enum import Enum
 import sqlalchemy
 
 router = APIRouter(
@@ -10,9 +11,18 @@ router = APIRouter(
     dependencies=[Depends(auth.get_api_key)],
 )
 
+class JobsAvailable(str, Enum):
+    unassigned = "unassigned"
+    hunter = "hunter"
+    forager = "forager"
+    farmer = "farmer"
+    butcher = "butcher"
+    lumberjack = "lumberjack"
+    miner = "miner"
+
+
 class Jobs(BaseModel):
-    job_id: int
-    job_title: str
+    job_name: JobsAvailable
     villagers_assigned: int
 
 
@@ -25,7 +35,7 @@ def get_job_list():
     with db.engine.begin() as connection:
 
         job_list_query = """ 
-                            SELECT jobs.id AS id,
+                            SELECT 
                                 jobs.job_name AS name,
                                 COUNT(villagers.job_id) AS quantity
                             FROM jobs
@@ -38,8 +48,7 @@ def get_job_list():
     for row in result:
         job_list.append(
             {
-                "job_id": row.id,
-                "job_title": row.name,
+                "job_name": row.name,
                 "villagers_assigned": row.quantity
             }
         )
@@ -49,25 +58,33 @@ def get_job_list():
 @router.put("/assignments")
 def assign_villager(job_list: list[Jobs]):
     """
-    The call passes in a catalog of each job type and how many villagers are working in each job type. 
-    The user would return back new values, if any, of how many villagers they want in each job.
+    Assigns villager(s) to whatever jobs available
     """
-
     with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text("UPDATE villagers SET job_id = 0"))
+        update_list = []
         for job in job_list:
             if job.villagers_assigned > 0:
-                update_query =  """
-                                    UPDATE villagers
-                                    SET job_id = :job_id
-                                    WHERE id IN (
-                                        SELECT id FROM villagers
-                                        WHERE job_id = 0
-                                        LIMIT :villagers_asn
-                                    )
-                                """
-                connection.execute(sqlalchemy.text(update_query),{ "job_id" : job.job_id,
-                                                                    "villagers_asn" : job.villagers_assigned
-                                                                    })
+                update_list.append(
+                    {"job_name" : job.job_name,
+                    "assigned" : job.villagers_assigned})
+                
+        update_query =  """
+                        WITH jobless_villagers AS (
+                            SELECT id
+                            FROM villagers
+                            WHERE job_id = 0
+                            LIMIT :assigned
+                        )
+
+                        UPDATE villagers
+                        SET job_id = (
+                            SELECT id
+                            FROM jobs
+                            WHERE job_name = :job_name
+                        )
+                        WHERE id IN (SELECT id FROM jobless_villagers)
+                        """
+        #
+        connection.execute(sqlalchemy.text(update_query),update_list)
 
     return "OK"

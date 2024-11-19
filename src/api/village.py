@@ -1,14 +1,29 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from src.api import auth
 import sqlalchemy
 from src import database as db
+from enum import Enum
 
 router = APIRouter(
     prefix="/village",
     tags=["village"],
     dependencies=[Depends(auth.get_api_key)],
 )
+
+class ResourceType(str, Enum):
+    food = "food"
+    water = "water"
+    wood = "wood"
+
+class AvailableBuilding(str, Enum):
+    town_hall = "Town Hall"
+    villager_hut = "Villager Hut"
+    hunter_hut = "Hunter Hut"
+    forager_hut = "Forager Hut"
+    farm = "Farm"
+    mill = "Lumber Mill"
+    mine = "Mine"
 
 class Villagers(BaseModel):
     job_id: int
@@ -17,10 +32,10 @@ class Villagers(BaseModel):
 
 class Building(BaseModel):
     quantity: int
-    building_name: str
+    building_name: AvailableBuilding
 
 class BuildingStorage(BaseModel):
-    resource_name: str
+    resource_name: ResourceType
     amount: int
 
 
@@ -83,8 +98,12 @@ def create_villager(villagers: list[Villagers]):
     """
     Creates one or many villagers (id auto incrementing and job_id can start null)
     """
+
     update_list = list()
     for villager in villagers:
+        if villager.age < 0 or villager.age > 100:
+              raise HTTPException(status_code=400, detail="Age must be between 0-100 inclusive, please retry")
+        # Nothing before or after exception will be added to DB if one case fails
         update_list.append({"age":villager.age,
                             "nourishment":villager.nourishment,
                             "job":villager.job_id})

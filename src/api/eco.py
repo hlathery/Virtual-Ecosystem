@@ -5,6 +5,7 @@ import sqlalchemy
 from sqlalchemy import update
 from sqlalchemy.orm import session
 from src import database as db
+from enum import Enum
 from typing import Dict
 
 router = APIRouter(
@@ -13,11 +14,18 @@ router = APIRouter(
     dependencies=[Depends(auth.get_api_key)],
 )
 
+class EntityType(str, Enum):
+    predator = "predator"
+    prey = "prey"
+    tree = "tree"
+    plants = "plants"
+    water = "water"
+
 class Entity(BaseModel):
     # ent_id: int
     quantity: int
     nourishment: int
-    entity_type: str
+    entity_type: EntityType
     biome_id: int
 
 

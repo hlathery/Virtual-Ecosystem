@@ -279,23 +279,7 @@ Used for assigning jobs
 ]
 ``` 
 
-## 4. Info
-
-Grabs information about the game world
-
-### 4.1. Get Time - `/info/current_time/` (GET)
-
-**Response:**
-
-```json
-{
-    "year" : "int",
-    "month" : "int",
-    "day" : "int"
-}
-```
-
-## 5. Admin
+## 4. Admin
 
 Used for resseting the game
 
