@@ -51,7 +51,7 @@ def post_biome_counts(biomes: Dict[str, int]):
             connection.execute(sqlalchemy.text("INSERT INTO biomes (biome_type) VALUES (:forest_values)"),
                                {"forest_values": forest_values})
 
-@router.put("/grow_plants")
+@router.put("/plants")
 def grow_plants(plants_to_grow: list[Entity]):
     """
     Takes in a request that contains of list of plant seeds to be planted in the 
@@ -109,36 +109,6 @@ def plants_overview():
     print(f"Total plants in ecosystem: {plants_list} ")
     return plants_list
     
-    
-
-@router.get("/prey/")
-def prey_overview():
-    """
-    Returns a list of all prey and the amount in the entire ecosystem
-    """
-    prey_list = []
-    prey_query =    """
-                        SELECT entity_type,
-                            SUM(quantity) as Total
-                        FROM entitys
-                        WHERE entity_type = 'prey'
-                        GROUP BY entity_type
-                    """
-
-    with db.engine.begin() as connection:
-        prey_table = connection.execute(sqlalchemy.text(prey_query)).fetchone()
-        entity_type = prey_table[0]
-        total = prey_table[1]
-
-        prey_list.append({
-            "entity_type": entity_type,
-            "quantity": total
-        })
-        
-    print(f"Total prey in ecosystem: {prey_list} ")
-    return prey_list
-
-
 
 # @router.put("/grab_water")
 # def collect_water(water_bodies: list[Entity]):
@@ -162,14 +132,12 @@ def spawn_entity(prey_to_spawn : list[Entity]):
     with db.engine.begin() as connection:
         entity_list = []
         for entity in prey_to_spawn:
-            entity_list.append({ "quantity": entity.quantity,
-                                "nourishment": entity.nourishment,
+            entity_list.append({"nourishment": entity.nourishment,
                                 "entity_type": entity.entity_type,
                                 "biome_id": entity.biome_id})    
         prey_query = """
                         UPDATE entitys
-                        SET quantity = quantity + :quantity,
-                            nourishment = nourishment + :nourishment
+                        SET nourishment = nourishment + :nourishment
                         WHERE entity_type = :entity_type
                             AND biome_id = :biome_id
                       """

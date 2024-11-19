@@ -160,21 +160,7 @@ Allows the user to plant seeds for trees and plants
 ]
 ``` 
 
-### 2.3. View prey -`eco/prey/` (GET)
-View overall prey
-
-**Response:** 
-
-```json
-[
-    { 
-        "entity_type": "string", /* Should be prey */ 
-        "quantity": "int" 
-    }
-] 
-```
-
-### 2.4. Collect water - `/eco/grab_water` (PUT) 
+### 2.3. Collect water - `/eco/grab_water` (PUT) 
 
 Allows user to collect water as needed for village
 
@@ -199,7 +185,7 @@ Allows user to collect water as needed for village
 }
 ``` 
 
-### 2.5. Spawn entity - `/eco/entity` (POST)
+### 2.4. Spawn entity - `/eco/entity` (POST)
 Spawning entities to a specific biome, worth noting this call can also reduce 
 the number of entities (maybe they died due to nourshiment or killed off by hunters/predators) 
 
@@ -224,7 +210,7 @@ the number of entities (maybe they died due to nourshiment or killed off by hunt
 }
 ``` 
 
-### 2.6. View prey in biome -`/eco/prey/{biome_id}` (GET)
+### 2.5. View prey in biome -`/eco/prey/{biome_id}` (GET)
 Grabbing prey given a specific biome
 
 **Response:** 
@@ -238,7 +224,7 @@ Grabbing prey given a specific biome
 ]
 ``` 
 
-### 2.7. View predators - `/eco/predator/{biome_id}` (GET)
+### 2.6. View predators - `/eco/predator/{biome_id}` (GET)
 View total amount predators in a specific biome 
 
 **Response:** 

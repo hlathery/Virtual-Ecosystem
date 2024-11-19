@@ -2,148 +2,129 @@
 
 ## User Assigning Villager Jobs
 
-When a user realizes that their village's food source is beginning to dwindle, they find this by calling `GET village/inventory/`,which gives a list of village resources.
-They realize that they need to assign villagers to hunt and gather food to keep their village alive. The user will call `GET assignments/` to see a list of all jobs available and the amount of villagers in each.
+When a user realizes that their village's food source is beginning to dwindle, they find this by calling `GET village/village_inventory`, which gives a list of village resources.
+They realize that they need to assign villagers to hunt and gather food to keep their village alive. The user will call `GET jobs/` to see a list of all jobs available and the amount of villagers in each.
 After noticing there is a low number of villagers in forager and hunter jobs. They do the following:
 
-- `POST assignments/plan`. And the user will be prompted to return the json for the new amount of villagers in each job so they increase the amount of villagers in the "forager" and "hunter" jobs “villagers_assigned”, and the correct amount of villagers will be allocated to each job
+- `POST jobs/assignments`. And the user will be prompted to return the json for the new amount of villagers in each job so they increase the amount of villagers in the "forager" and "hunter" jobs “villagers_assigned”, and the correct amount of villagers will be allocated to each job
 
-After this is completed, the villagers will successfully increase the amount of resources available to keep their villagers alive and `PUT village/new_villager` along with `POST /village/kill_villager` will be called to populate the village more or less respectively to that we can assign new villagers made to villager’s jobs that have died.
+After this is completed, the villagers will successfully increase the amount of resources available to keep their villagers alive and `PUT village/villager` along with `DELETE /village/villager` will be called to populate the village more or less respectively to that we can assign new villagers made to villager’s jobs that have died.
 
 # Testing results
 ## Step 1: Calling "GET village/village_inventory"
 
+1. curl -X 'GET' \
+  'http://127.0.0.1:3000/village/village_inventory' \
+  -H 'accept: application/json' \
+  -H 'access_token: hlath'
 
-1. curl -X 'POST' \
- 'http://127.0.0.1:3000/village/village_inventory' \
- -H 'accept: application/json' \
- -H 'access_token: hlath' \
- -d ''
-2. {
-   "Wood": 100,
-   "Food": 50,
-   "Water": 50
-  }
+2. [{
+    "resource_name": "water",
+    "quantity": 50
+  },
 
+    {
+    "resource_name": "food",
+    "quantity": 50
+  },
 
-## Step 2: Calling "GET assignments/"
+    {
+    "resource_name": "wood",
+    "quantity": 100
+  }]
 
+## Step 2: Calling "GET jobs/"
 
 1. curl -X 'GET' \
- 'http://127.0.0.1:3000/assignments/' \
- -H 'accept: application/json' \
- -H 'access_token: hlath'
-
+  'http://127.0.0.1:3000/jobs/' \
+  -H 'accept: application/json' \
+  -H 'access_token: hlath'
 
 2. [
- {
-   "job_id": 2,
-   "job_title": "forager",
-   "villagers_assigned": 0
- },
- {
-   "job_id": 3,
-   "job_title": "farmer",
-   "villagers_assigned": 0
- },
- {
-   "job_id": 5,
-   "job_title": "lumberjack",
-   "villagers_assigned": 0
- },
- {
-   "job_id": 4,
-   "job_title": "butcher",
-   "villagers_assigned": 0
- },
- {
-   "job_id": 6,
-   "job_title": "miner",
-   "villagers_assigned": 0
- },
- {
-   "job_id": 0,
-   "job_title": "unassigned",
-   "villagers_assigned": 2
- },
- {
-   "job_id": 1,
-   "job_title": "hunter",
-   "villagers_assigned": 0
- }
+  {
+    "job_id": 2,
+    "job_title": "forager",
+    "villagers_assigned": 0
+  },
+
+    {
+    "job_id": 3,
+    "job_title": "farmer",
+    "villagers_assigned": 0
+  },
+
+    {
+    "job_id": 5,
+    "job_title": "lumberjack",
+    "villagers_assigned": 0
+  },
+
+    {
+    "job_id": 4,
+    "job_title": "butcher",
+    "villagers_assigned": 0
+  },
+
+    {
+    "job_id": 6,
+    "job_title": "miner",
+    "villagers_assigned": 0
+  },
+
+    {
+    "job_id": 0,
+    "job_title": "unassigned",
+    "villagers_assigned": 0
+  },
+
+    {
+    "job_id": 1,
+    "job_title": "hunter",
+    "villagers_assigned": 0
+  }
 ]
 
+## Step 3: Calling "POST jobs/assignment"
 
-## Step 3: Calling "POST assignments/plan"
-
-
-1. curl -X 'POST' \
- 'http://127.0.0.1:3000/assignments/plan' \
- -H 'accept: application/json' \
- -H 'access_token: hlath' \
- -H 'Content-Type: application/json' \
- -d '[
- {
-   "job_id": 2,
-   "job_title": "forager",
-   "villagers_assigned": 1
- },
- {
-   "job_id": 3,
-   "job_title": "farmer",
-   "villagers_assigned": 0
- },
- {
-   "job_id": 5,
-   "job_title": "lumberjack",
-   "villagers_assigned": 0
- },
- {
-   "job_id": 4,
-   "job_title": "butcher",
-   "villagers_assigned": 0
- },
- {
-   "job_id": 6,
-   "job_title": "miner",
-   "villagers_assigned": 0
- },
- {
-   "job_id": 0,
-   "job_title": "unassigned",
-   "villagers_assigned": 0
- },
- {
-   "job_id": 1,
-   "job_title": "hunter",
-   "villagers_assigned": 1
- }
+1. curl -X 'PUT' \
+  'http://127.0.0.1:3000/jobs/assignments' \
+  -H 'accept: application/json' \
+  -H 'access_token: hlath' \
+  -H 'Content-Type: application/json' \
+  -d '[
+  {
+    "job_id": 3,
+    "job_title": "Farmer",
+    "villagers_assigned": 1
+  }
 ]'
 
+2. "1 villager sucesfully assigned as a farmer"
 
-2. "OK"
-## Step 4: ‘PUT village/new_villager’
+## Step 4: "PUT village/villager"
 1. curl -X 'PUT' \
-  'http://127.0.0.1:3000/village/new_villager' \
+  'http://127.0.0.1:3000/village/villager' \
   -H 'accept: application/json' \
   -H 'access_token: hlath' \
   -H 'Content-Type: application/json' \
   -d '[
   {
     "job_id": 0,
-    "age": 20,
-    "nourishment": 100
+    "age": 15,
+    "nourishment": 90
   }
 ]'
+
 2. [
   "Villager(s) successfully created"
 ]
-## Step 5: ‘POST /village/kill_villager’
-1. curl -X 'POST' \
-  'http://127.0.0.1:3000/village/kill_villager?amount=2' \
+
+## Step 5: "DELETE /village/villager"
+1. curl -X 'DELETE' \
+  'http://127.0.0.1:3000/village/villager?amount=1' \
   -H 'accept: application/json' \
-  -H 'access_token: hlath' \
-  -d ''
+  -H 'access_token: hlath'
+
 2. “OK”
 
 
@@ -238,10 +219,10 @@ Then, `POST /village/fill_inventory` is called to update the amount of resources
 # User prey and predators
 When a user sees that the nourishment of biome 1 (identified by biome_id) is dwindling and needs to see the status of each entity (plants, prey, predators) in that biome ecosystem, the user would start by calling `GET/eco/prey/{biome_id}` and `POST/eco/predators{biome_id}` to get an overview of that biome’s prey and predators.
 
-Say the user sees that the nourishment of the forest biome is low because they have over hunted the prey, leaving the amount of predators to decline as a result (as they are out of food). The user wants to raise the nourishment level to prevent the destruction and extinction of the biome (when nourishment = 0). The user would then call `POST eco/spawn_prey` and `POST eco/spawn_predator` specifying the biome in the request body. Note that the user is limited to spawn a quantity of 10 (which provides a nourishment of 10, which maxes out at 100) per entity per decision year. 
+Say the user sees that the nourishment of the forest biome is low because they have over hunted the prey, leaving the amount of predators to decline as a result (as they are out of food). The user wants to raise the nourishment level to prevent the destruction and extinction of the biome (when nourishment = 0). The user would then call `POST eco/spawn_entity` specifying the biome and entity type in the request body. Note that the user is limited to spawn a quantity of 10 (which provides a nourishment of 10, which maxes out at 100) per entity per decision year. 
 
 # Testing Results
-## Step 1: Calling ‘POST/eco/prey/{biome_id}’
+## Step 1: Calling "POST/eco/prey/{biome_id}"
 1. curl -X 'GET' \
   'http://127.0.0.1:3000/eco/prey/1' \
   -H 'accept: application/json' \
@@ -251,7 +232,7 @@ Say the user sees that the nourishment of the forest biome is low because they h
   "amount": 29
 }
 
-## Step 2: Calling ‘POST/eco/predator/{biome_id}’
+## Step 2: Calling "POST/eco/predator/{biome_id}"
 1. curl -X 'GET' \
   'http://127.0.0.1:3000/eco/predator/1' \
   -H 'accept: application/json' \
@@ -261,46 +242,36 @@ Say the user sees that the nourishment of the forest biome is low because they h
   "amount": 25
 }
 
-## Step 3: Calling ‘POST eco/spawn_prey’
+## Step 3: Calling "POST eco/spawn_entity"
 1. curl -X 'POST' \
-  'http://127.0.0.1:3000/eco/spawn_prey' \
+  'http://127.0.0.1:3000/eco/entity' \
   -H 'accept: application/json' \
   -H 'access_token: hlath' \
   -H 'Content-Type: application/json' \
   -d '[
   {
-    "quantity": 10,
-    "nourishment": 10,
-    "entity_type": "prey",
-    "biome_id": 1
-  }
-]'
-
-2. "OK"
-
-## Step 4: Calling ‘POST eco/spawn_prey’
-1. curl -X 'POST' \
-  'http://127.0.0.1:3000/eco/spawn_predator/' \
-  -H 'accept: application/json' \
-  -H 'access_token: hlath' \
-  -H 'Content-Type: application/json' \
-  -d '[
-  {
-    "quantity": 10,
-    "nourishment": 10,
+    "quantity": 4,
+    "nourishment": 75,
     "entity_type": "predator",
-    "biome_id": 1
+    "biome_id": 5
+  },
+{
+    "quantity": 10,
+    "nourishment": 100,
+    "entity_type": "prey",
+    "biome_id": 5
   }
 ]'
 
 2. "OK"
+
 
 # User Controlling Plants
 The user sees that the nourishment of the entire ecosystem (all biomes) is low, but the amount of prey and predators are relatively high. First the user would need to see the status of plants in the ecosystem, so they would need to call `GET eco/plants/` which would return an overview of all plants in the ecosystem.
 
 Say the user wants to plant seeds in each biome to increase the amount of overall plants and raise the plant nourishment of each biome. The user would call `PUT eco/grow_plants` which takes in a list of plants to be planted in the given biome. The user is limited to planting 10 seeds, which increases the plant nourishment in that biome by 10, which maxes out at 100.
 # Testing Results
-## Step 1: Calling ‘GET eco/plants'
+## Step 1: Calling "GET eco/plants/"
 1. curl -X 'GET' \
   'http://127.0.0.1:3000/eco/plants/' \
   -H 'accept: application/json' \
@@ -313,7 +284,7 @@ Say the user wants to plant seeds in each biome to increase the amount of overal
   }
 ]
 
-## Step 2: Calling ‘PUT eco/grow_plants’
+## Step 2: Calling "PUT eco/plants"
 1. curl -X 'PUT' \
   'http://127.0.0.1:3000/eco/grow_plants' \
   -H 'accept: application/json' \
@@ -335,7 +306,7 @@ Say the user wants to plant seeds in each biome to increase the amount of overal
 ]'
 2. "OK"
 
-## Step 3: Calling ‘POST /eco/biome/’
+## Step 3: Calling "POST /eco/biome/"
 1. curl -X 'POST' \
   'http://127.0.0.1:3000/eco/biomes/' \
   -H 'accept: application/json' \
