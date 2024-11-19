@@ -23,8 +23,6 @@ Creates a new villager, unassigned
 ```json
 [
     { 
-        "name":  "string", 
-        "id": "int", 
         "age": "int",
         "nourishment": "int" 
     }
@@ -35,7 +33,7 @@ Creates a new villager, unassigned
 
 ```json
     {
-        "success": "boolean"
+        "Villager(s) successfully created"
     }
 ``` 
 
@@ -123,21 +121,6 @@ Gets inventory across all buildings
 
 All API calls for the ecosystem.
 
-### 2.1. Plant seed - `/eco/grow_plants` (PUT)
-Allows the user to plant seeds for trees and plants
-
-**Request:** 
-
-```json
-[
-    { 
-        "quantity": "int",
-        "nourishment": "int",
-        "entity_type": "string", /* Should be "plants" */
-        "biome_id": "int"
-    }
-]
-```
 
 **Response:** 
 
@@ -147,20 +130,20 @@ Allows the user to plant seeds for trees and plants
 }
 ``` 
 
-### 2.2. View plants - `/eco/plants/` (GET)  
+### 2.1. View plants - `/eco/plants/` (GET)  
 
 **Response:** 
 
 ```json
 [
     { 
-        "entity_type": "string", /* Should be "plants" */
+        "entity_type": "string", 
         "quantity": "int" 
     }
 ]
 ``` 
 
-### 2.3. Collect water - `/eco/grab_water` (PUT) 
+### 2.2. Collect water - `/eco/grab_water` (PUT) 
 
 Allows user to collect water as needed for village
 
@@ -185,9 +168,9 @@ Allows user to collect water as needed for village
 }
 ``` 
 
-### 2.4. Spawn entity - `/eco/entity` (POST)
+### 2.3. Spawn entity - `/eco/entity` (POST)
 Spawning entities to a specific biome, worth noting this call can also reduce 
-the number of entities (maybe they died due to nourshiment or killed off by hunters/predators) 
+the number of entities
 
 **Request:** 
 
@@ -210,7 +193,7 @@ the number of entities (maybe they died due to nourshiment or killed off by hunt
 }
 ``` 
 
-### 2.5. View prey in biome -`/eco/prey/{biome_id}` (GET)
+### 2.4. View prey in biome -`/eco/prey/{biome_id}` (GET)
 Grabbing prey given a specific biome
 
 **Response:** 
@@ -218,13 +201,13 @@ Grabbing prey given a specific biome
 ```json
 [
     { 
-        "entity_type": "string", /* Should be "prey" */ 
+        "entity_type": "string",
         "amount": "int" 
     }
 ]
 ``` 
 
-### 2.6. View predators - `/eco/predator/{biome_id}` (GET)
+### 2.5. View predators - `/eco/predator/{biome_id}` (GET)
 View total amount predators in a specific biome 
 
 **Response:** 
@@ -232,7 +215,7 @@ View total amount predators in a specific biome
 ```json
 [
     { 
-        "entity_type": "string", /* Should be "predator" */ 
+        "entity_type": "string",
         "amount": "int" 
     }
 ] 
@@ -249,7 +232,7 @@ Used for assigning jobs
 ```json
 [
     {
-        "job_title" : "string",
+        "job_name" : "string",
         "villagers_assigned" : "int"
     }
 ]
@@ -261,7 +244,8 @@ Used for assigning jobs
 
 ```json
 [
-    { 
+    {   
+        "job_name": "string",
         "villager_id": "int" 
     }
 ]

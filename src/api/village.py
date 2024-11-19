@@ -26,7 +26,6 @@ class AvailableBuilding(str, Enum):
     mine = "Mine"
 
 class Villagers(BaseModel):
-    job_id: int
     age: int
     nourishment: int
 
@@ -101,16 +100,16 @@ def create_villager(villagers: list[Villagers]):
 
     update_list = list()
     for villager in villagers:
-        if villager.age < 0 or villager.age > 100:
-              raise HTTPException(status_code=400, detail="Age must be between 0-100 inclusive, please retry")
+        if (villager.age < 0 or villager.age > 100 or
+            villager.nourishment < 0 or villager.nourishment > 100):
+              raise HTTPException(status_code=400, detail="Age and nourishment must be between 0-100 inclusive, please retry")
         # Nothing before or after exception will be added to DB if one case fails
         update_list.append({"age":villager.age,
-                            "nourishment":villager.nourishment,
-                            "job":villager.job_id})
+                            "nourishment":villager.nourishment})
 
     insert_query =  """
-                        INSERT INTO villagers (job_id, age, nourishment)
-                        VALUES (:job, :age, :nourishment)
+                        INSERT INTO villagers (age, nourishment)
+                        VALUES (:age, :nourishment)
                     """
 
     with db.engine.begin() as connection:

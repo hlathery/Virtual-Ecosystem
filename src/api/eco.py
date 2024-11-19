@@ -59,35 +59,6 @@ def post_biome_counts(biomes: Dict[str, int]):
             connection.execute(sqlalchemy.text("INSERT INTO biomes (biome_type) VALUES (:forest_values)"),
                                {"forest_values": forest_values})
 
-@router.put("/plants")
-def grow_plants(plants_to_grow: list[Entity]):
-    """
-    Takes in a request that contains of list of plant seeds to be planted in the 
-    requested biome
-    AVAILABLE BIOMES (biome_id : name)
-    1 : Forest
-    2 : Grasslands
-    3 : Beach
-    """
-    with db.engine.begin() as connection:
-        plants_list = []
-        for plant in plants_to_grow:
-            plants_list.append({ "quantity": plant.quantity,
-                                "nourishment": plant.nourishment,
-                                "entity_type": plant.entity_type,
-                                "biome_id": plant.biome_id})    
-        plant_query = """
-                        UPDATE entitys
-                        SET quantity = quantity + :quantity,
-                            nourishment = nourishment + :nourishment
-                        WHERE entity_type = :entity_type
-                            AND biome_id = :biome_id
-                      """
-        connection.execute(sqlalchemy.text(plant_query),plants_list)
-
-    return "OK"
-
-
 
 
 @router.get("/plants/")
