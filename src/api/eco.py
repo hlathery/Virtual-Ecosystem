@@ -23,33 +23,54 @@ class Entity(BaseModel):
 
 
 
-# @router.post("/")
-# def get_eco_overview():
-#     """
-#     Returns a general overview of the ecosystem and its characteristics such as: 
-#     predators and prey and how many there are, the characteristics of each body of water and their id, 
-#     plants and how many there are, resources (trees for wood, mine shafts for mining, etc.).
-#     """
+@router.get("/")
+def get_eco_overview():
+    """
+    Returns a general overview of the ecosystem and its characteristics such as: 
+    predators and prey and how many there are, the characteristics of each body of water and their id, 
+    plants and how many there are, resources (trees for wood, mine shafts for mining, etc.).
+    """
 
-#     return "OK"
+    with db.engine.begin() as connection:
+        biome_counts = connection.execute(sqlalchemy.text("SELECT COUNT(id) AS amount, biome_name FROM biomes GROUP BY biome_name"))
+
+    biomes = []
+    for row in biome_counts:
+        biomes.append({
+            "biome": row.biome_name,
+            "count": row.amount
+        })
+
+    return biomes
 
 @router.post("/biomes/")
-def post_biome_counts(biomes: Dict[str, int]):
+def post_biome_counts(biome: Dict[str, int]):
     """
     Posts the biome counts from flood fill.
     """
-    ocean_values = ", ".join(["('ocean')"] * biomes.get("Ocean", 0))
-    forest_values = ", ".join(["('forest')"] * biomes.get("Forest", 0))
+    biomes = []
+    for i in range(0,biome.get("Ocean", 0)):
+        biomes.append({'b':'ocean'})
+    for i in range(0,biome.get("Forest", 0)):
+        biomes.append({'b':'forest'})
+    for i in range(0,biome.get("Beach", 0)):
+        biomes.append({'b':'beach'})
+    for i in range(0,biome.get("Grassland", 0)):
+        biomes.append({'b':'grassland'})
 
     with db.engine.begin() as connection:
+        connection.execute(sqlalchemy.text("INSERT INTO biomes (biome_name) VALUES (:b)"), biomes)
 
-        if biomes.get("Ocean", 0) > 0:
-            connection.execute(sqlalchemy.text("INSERT INTO biomes (biome_type) VALUES (:ocean_values)"),
-                               {"ocean_values": ocean_values})
-        
-        if biomes.get("Forest", 0) > 0:
-            connection.execute(sqlalchemy.text("INSERT INTO biomes (biome_type) VALUES (:forest_values)"),
-                               {"forest_values": forest_values})
+
+@router.delete("/delete")
+def reset():
+    """
+    Resets biomes table to get a new count of all biomes
+    """
+    with db.engine.begin() as connection:
+        connection.execute(sqlalchemy.text("DELETE FROM biomes"))
+
+    return "OK"
 
 @router.put("/grow_plants")
 def grow_plants(plants_to_grow: list[Entity]):
@@ -74,8 +95,6 @@ def grow_plants(plants_to_grow: list[Entity]):
         connection.execute(sqlalchemy.text(plant_query),plants_list)
 
     return "OK"
-
-
 
 
 @router.get("/plants/")

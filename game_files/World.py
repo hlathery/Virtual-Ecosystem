@@ -82,6 +82,8 @@ class World():
             "Grassland": 300,
             "Forest": 20       
         }
+
+        requests.delete("http://127.0.0.1:3000/eco/delete", headers={"accept": "application/json", "access_token": "hlath"})
         
         def get_biome_name(tile_type):
             if tile_type in [OCEAN1, OCEAN2, OCEAN3]: 
@@ -129,21 +131,22 @@ class World():
                 for next_x, next_y in directions:
                     stack.append((next_x, next_y))
             
-            return region_size
+            return region_size, stack
 
         
-        
+        biome_orders = []
         for y in range(len(tile_map)):
             for x in range(len(tile_map[0])):
                 if (x, y) not in visited:
                     current_type = tile_map[y][x]
                     biome_name = get_biome_name(current_type)
                     if biome_name:
-                        size = flood_fill(x, y, current_type)
+                        size, order = flood_fill(x, y, current_type)
                         if size >= MIN_BIOME_SIZES[biome_name]:
                             biome_counts[biome_name] += 1
+                            biome_orders.append({biome_name:order})
                             # print(f"Found {biome_name} - Size: {size} tiles")  # for testing
         
         res = requests.post("http://127.0.0.1:3000/eco/biomes/", json=biome_counts, headers={"accept": "application/json", "access_token": "hlath", "Content-Type": "application/json"})
 
-        return biome_counts
+        return biome_orders

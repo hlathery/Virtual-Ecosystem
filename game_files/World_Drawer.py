@@ -21,8 +21,6 @@ class WorldDrawer:
         self.get_headers = {"accept": "application/json", "access_token": "hlath"}
         self.post_headers = {"accept": "application/json", "access_token": "hlath", "Content-Type": "application/json"}
         self.menu_options = ["Catalog", "Village Info", "Assignments", "Eco Info"]
-        self.eco = {"Water Bodies":0, "Forests":0, "Grass":0, "Desert":0}
-
         if __name__ == "__main__":
             # Start FastAPI in a separate thread
             fastapi_thread = threading.Thread(target=self.run_fastapi)
@@ -35,17 +33,18 @@ class WorldDrawer:
             for tile_pos in TERRAIN_TILES[terrain_type]:
                 tile_types.append(self.tilesheet.subsurface((tile_pos[0], tile_pos[1], TILESIZE, TILESIZE)))
             self.terrain_tiles.append(tile_types)
+        self.building_tile = self.tilesheet.subsurface((building_coords[0], building_coords[1], TILESIZE, TILESIZE))
 
     def run_fastapi():
         import main
 
     def draw(self):
         while True:
-            World.count_biomes(self=World, tile_map=self.height_map)
-            self.draw_tiles(self.height_map)
+            orders = World.count_biomes(self=World, tile_map=self.height_map)
+            self.draw_tiles(self.height_map, orders)
             pygame.display.flip()
             self.decisions()
-            self.draw_tiles(self.height_map)
+            self.draw_tiles(self.height_map, orders)
             pygame.display.flip()
             self.cont()
             c, m = self.wait_key()
@@ -79,6 +78,7 @@ class WorldDrawer:
         job_list = requests.get("http://127.0.0.1:3000/assignments/get_job_list", headers=self.get_headers).json()
         overview = requests.get("http://127.0.0.1:3000/village/", headers=self.get_headers).json()
         catalog_list = requests.get("http://127.0.0.1:3000/village/catalog", headers=self.get_headers).json()
+        eco_overview = requests.get("http://127.0.0.1:3000/eco/", headers=self.get_headers).json()
         while menu:
             menu = pygame.Rect(x, y, 400, 600)
             pygame.draw.rect(self.display_surface, (0,0,0), menu)
@@ -106,7 +106,7 @@ class WorldDrawer:
                     buttons.append(button)
                     pygame.draw.rect(self.display_surface, (0,0,255), button)
                     self.draw_text("Add "+catalog_list['buildings'][i], (255,255,255), x+5, y+55+((interval+height)*c))
-                    self.draw_text(f"{catalog_list['funds']/catalog_list['costs'][i]}", (255,255,255), x+375, y+55+((interval+height)*c))
+                    self.draw_text(f"{round(catalog_list['funds']/catalog_list['costs'][i])}", (255,255,255), x+375, y+55+((interval+height)*c))
                     c += 1
 
                 mx, my = pygame.mouse.get_pos()
@@ -190,9 +190,9 @@ class WorldDrawer:
                 interval = 20
                 height = 20
                 c = 0
-                for type, num in self.eco.items():
-                    self.draw_text(type, (255,255,255), x+5, y+55+((interval+height)*c))
-                    self.draw_text(f"{num}", (255,255,255), x+375, y+55+((interval+height)*c))
+                for b in eco_overview:
+                    self.draw_text(b["biome"], (255,255,255), x+5, y+55+((interval+height)*c))
+                    self.draw_text(f"{b['count']}", (255,255,255), x+375, y+55+((interval+height)*c))
                     c += 1
 
             pygame.display.flip()
@@ -214,7 +214,7 @@ class WorldDrawer:
     def cont(self):
         time.sleep(5)
 
-    def draw_tiles(self, terrain_type_map):
+    def draw_tiles(self, terrain_type_map, ord):
         for y, row in enumerate(terrain_type_map):
             for x, value in enumerate(row):
 
@@ -234,6 +234,17 @@ class WorldDrawer:
                         image = self.terrain_tiles[terrain_type][tile_index]
                         break
                 self.display_surface.blit(image, (x * TILESIZE, y * TILESIZE))
+
+        max = 0
+        c = 0
+        for i in range(0, len(ord)):
+            if len(ord[i].get('Grassland', [])) > max and len(ord[i].get('Grassland', [])) >= sum(overview["num_buildings"]):
+                max = len(ord[i].get('Grassland', []))
+                c = i
+        if max > 0:
+            overview = requests.get("http://127.0.0.1:3000/village/", headers=self.get_headers).json()
+            for i in range(0, sum(overview["num_buildings"])):
+                self.display_surface.blit(self.building_tile, (ord[c]['Grassland'][i][0]*TILESIZE,ord[c]['Grassland'][i][1]*TILESIZE))
 
 
     def get_tile_index_for_type(self, tile_corners, terrain_type):
