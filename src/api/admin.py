@@ -21,7 +21,7 @@ def reset():
         query = """
                     DELETE FROM biomes;
 
-                    DELETE FROM entitys;
+                    DELETE FROM entities;
 
                     DELETE FROM storage;
 
