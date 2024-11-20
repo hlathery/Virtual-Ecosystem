@@ -47,3 +47,54 @@ Endpoint has been changed.
 ### 12. In get/catalog, the query variable and for loop can be moved outside of the with statement.
 
 -- Loops have been pulled out of connection calls across all endpoints.
+
+
+# Cory Cowden
+
+### 1. “Environmental” spelled wrong on readme.md
+
+-- Fixed.
+
+### 2. Many functions are commented off. If they are unwanted, consider deleting them.
+
+-- Fixed.
+
+### 3. In assign_villager, make sure to check that villagers_assigned is not a negative number before updating
+
+-- Fixed.
+
+### 4. Consider checking for empty lists before running queries like in spawn_prey and grow_plants
+
+-- NOT DONE
+
+### 5. Check to make sure that valid biome ids are being passed in eco.py, for example in spawn_prey, make sure that the biome id matches one available option. If not, throw an error
+
+-- Fixed
+
+### 6. Make sure that the get endpoints like biome_prey, catalog, get_job_list, etc. can handle empty lists. For example, if biome_prey searches but has no data, consider returning something like “No prey found!” for clarity
+
+-- WIP
+
+### 7. Consider adding ledgers for data like jobs for job_history, villagers_created, or population so it is easier to keep track and debug if needed
+
+-- To Talk About.
+
+### 8. Consider adding comments on less straightforward endpoints such as post_biome_counts so it is easier to read.
+
+-- Added.
+
+### 9. Consider adding errors and error messages for when an invalid building/biome type is passed in build_building, spawn_predator, spawn_prey, etc.
+
+-- WIP
+
+### 10. Consider adding errors and error messages for when a user tries to kill more villagers than are available
+
+-- WIP
+
+### 11. Consider adding logs or ledgers for user actions, such as when a user tries to create/kill villagers
+
+-- To Talk About.
+
+### 12. For some PUT endpoints like assign_villager, consider returning something more useful than “OK” for example, you could return how many villagers were reassigned
+
+-- Added.
