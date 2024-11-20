@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
 from src.api import auth
 import sqlalchemy
-from sqlalchemy import update
+from sqlalchemy import update, text, bindparam
 from sqlalchemy.orm import session
 from src import database as db
 from enum import Enum
@@ -31,6 +31,21 @@ class EntityUpdate(BaseModel):
     id: int
     nourishment: float
 
+class BiomeCounts(BaseModel):
+    ocean: int = 0
+    forest: int = 0
+    grassland: int = 0
+    beach: int = 0
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "ocean": 9,
+                "forest": 6,
+                "grassland": 1,
+                "beach": 4
+            }
+        }
 
 
 @router.post("/")
@@ -68,39 +83,37 @@ def get_eco_overview():
     
     return overview
 
+from sqlalchemy import text
+
+
 # COMPLEX ENDPOINT
 @router.post("/biomes/")
-def post_biome_counts(biomes: Dict[str, int]):
-
-    # Every time a map is generated, a flood fill algorithm is called and all biomes are pushed into the database.
-
+def post_biome_counts(biomes: BiomeCounts):
     """
     Posts the biome counts from flood fill.
-    Creates new biome entries based on the counts using a single database call.
+    Creates new biome entries based on the counts.
     """
-    print("Received biomes:", biomes)
-
-    try:
     
-        insert_values = []
-        for biome_name, count in biomes.items():
-            if count > 0:
-                insert_values.extend([{"biome_name": biome_name.lower()} for _ in range(count)])
+    try:
+        biomes_dict = biomes.dict()
+        print("Received biomes:", biomes_dict)
 
-        if insert_values:
+        insert_data = []
+        for biome_name, count in biomes_dict.items():
+            if count > 0:
+                insert_data.extend([(biome_name.lower(),) for _ in range(count)])
+        
+        if insert_data:
             insert_query = """
                 INSERT INTO biomes (biome_name)
-                SELECT val.biome_name
-                FROM unnest(:values)
-                AS val(biome_name);
+                VALUES (:biome_name)
             """
-            
             with db.engine.begin() as connection:
                 connection.execute(
                     sqlalchemy.text(insert_query),
-                    {"values": insert_values}
+                    [{"biome_name": biome_name} for biome_name, in insert_data]
                 )
-            
+        
         return {"message": "Biome counts recorded successfully"}
     except Exception as e:
         print(f"Database error: {str(e)}")
@@ -108,8 +121,7 @@ def post_biome_counts(biomes: Dict[str, int]):
             status_code=500,
             detail=f"Failed to insert biome counts: {str(e)}"
         )
-
-
+    
 
 @router.get("/plants/", status_code = status.HTTP_200_OK, response_description="Success")
 def plants_overview():
