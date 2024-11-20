@@ -374,13 +374,34 @@ def check_disaster():
                     deleted = len(result.fetchall())
                 
                 elif disaster_type == DisasterType.FAMINE:
-                    damage_query = """
+                    plants_prey_dmg = """
                         UPDATE entities
                         SET nourishment = nourishment * 0.7
                         WHERE entity_type IN ('plants', 'prey')
                         RETURNING id;
                     """
-                    result = connection.execute(sqlalchemy.text(damage_query))
+                    connection.execute(sqlalchemy.text(plants_prey_dmg))
+
+                    damage_query = """
+                        WITH random_villagers AS (
+                            SELECT id 
+                            FROM villagers
+                            WHERE id > 0
+                            ORDER BY RANDOM()
+                            LIMIT :count
+                        )
+                        DELETE FROM villagers 
+                        WHERE id IN (
+                            SELECT id 
+                            FROM random_villagers
+                        )
+                        RETURNING id;
+                    """
+                    result = connection.execute(
+                        sqlalchemy.text(damage_query), 
+                        {"count": affected_count}
+                    )
+
                     deleted = len(result.fetchall())
             
             return {
