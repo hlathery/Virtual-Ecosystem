@@ -121,8 +121,37 @@ Gets inventory across all buildings
 
 All API calls for the ecosystem.
 
+### 2.1. Ecosystem Overview - `/eco/` (POST)
 
-### 2.1. View plants - `/eco/plants/` (GET)  
+Returns all biomes with their respective entities and entity nourishment
+
+**Response**
+
+```json
+[
+    {
+        "biome_id": int,
+        "biome_name": string,
+        "entities": [{"name": string, "nourishment": id}]
+    }
+]
+
+```
+
+### 2.2. Posts Biomes `/eco/biomes/`
+A flood fill search algorithm is ran when the map is created. The results are sent to this endpoint.
+
+**Request**
+```json
+{
+  "ocean": int,
+  "forest": int,
+  "grassland": int,
+  "beach": int
+}
+```
+
+### 2.3. View plants - `/eco/plants/` (GET)  
 
 Grabs the total sum nourishment of plants of the entire ecosystem
 
@@ -138,7 +167,7 @@ Grabs the total sum nourishment of plants of the entire ecosystem
 ``` 
  
 
-### 2.2. Spawn entity - `/eco/entity` (POST)
+### 2.4. Spawn entity - `/eco/entity` (POST)
 Spawns entities to a specific biome. User controls plants, predators, prey, and trees to spawn.
 
 **Request:** 
@@ -161,7 +190,7 @@ Spawns entities to a specific biome. User controls plants, predators, prey, and 
 }
 ``` 
 
-### 2.3. View prey in biome -`/eco/prey/{biome_id}` (GET)
+### 2.5. View prey in biome -`/eco/prey/{biome_id}` (GET)
 Grabbing nourishment of prey given a specific biome
 
 **Response:** 
@@ -175,7 +204,7 @@ Grabbing nourishment of prey given a specific biome
 ]
 ``` 
 
-### 2.4. View predators - `/eco/predator/{biome_id}` (GET)
+### 2.6. View predators - `/eco/predator/{biome_id}` (GET)
 Grabbing nourishment of predators given a specific biome 
 
 **Response:** 
