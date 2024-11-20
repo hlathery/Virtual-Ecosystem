@@ -8,6 +8,7 @@ from src import database as db
 from enum import Enum
 from typing import Dict
 from fastapi import HTTPException, status
+import random
 
 router = APIRouter(
     prefix="/eco",
@@ -46,6 +47,13 @@ class BiomeCounts(BaseModel):
                 "beach": 4
             }
         }
+
+class DisasterType:
+    FLOOD = "flood"  # Affects coastal biomes more
+    PLAGUE = "plague"  # Affects densely populated areas
+    FAMINE = "famine"  # Reduces food/nourishment
+    STORM = "storm"  # General damage
+    REBELLION = "rebellion"  # Based on low satisfaction/resources
 
 
 @router.post("/")
@@ -93,7 +101,7 @@ def post_biome_counts(biomes: BiomeCounts):
     Posts the biome counts from flood fill.
     Creates new biome entries based on the counts.
     """
-    
+
     try:
         biomes_dict = biomes.dict()
         print("Received biomes:", biomes_dict)
@@ -309,3 +317,109 @@ def biome_predator(biome_id: int):
 
 
 
+
+
+# global variable for disasters
+disaster_counter = 0
+
+# random disaster
+@router.post("/disaster", response_description="Disaster Check")
+def check_disaster():
+    """
+    Has a chance to cause a random disaster, increases chance of disaster by 2% until one occurs.
+    When a disaster occurs, up to 5 villagers can be killed.
+    """
+    global disaster_counter
+    
+    try:
+        base_probability = 0.1 + (disaster_counter * 0.02)
+        print(f"Current disaster probability: {base_probability * 100}%")
+
+        # disaster occurred
+        if random.random() < base_probability:
+            disaster_counter = 0
+            
+            disaster_type = random.choice([
+                DisasterType.FLOOD,
+                DisasterType.PLAGUE,
+                DisasterType.FAMINE,
+                DisasterType.STORM,
+                DisasterType.REBELLION
+            ])
+            
+            with db.engine.begin() as connection:
+                # 0-5 villagers may die
+                affected_count = random.randint(0, 5)
+                
+                if disaster_type in [DisasterType.FLOOD, DisasterType.PLAGUE, DisasterType.STORM, DisasterType.REBELLION]:
+                    damage_query = """
+                        WITH random_villagers AS (
+                            SELECT id 
+                            FROM villagers
+                            WHERE id > 0
+                            ORDER BY RANDOM()
+                            LIMIT :count
+                        )
+                        DELETE FROM villagers 
+                        WHERE id IN (
+                            SELECT id 
+                            FROM random_villagers
+                        )
+                        RETURNING id;
+                    """
+                    result = connection.execute(
+                        sqlalchemy.text(damage_query), 
+                        {"count": affected_count}
+                    )
+                    deleted = len(result.fetchall())
+                
+                elif disaster_type == DisasterType.FAMINE:
+                    plants_prey_dmg = """
+                        UPDATE entities
+                        SET nourishment = nourishment * 0.7
+                        WHERE entity_type IN ('plants', 'prey')
+                        RETURNING id;
+                    """
+                    connection.execute(sqlalchemy.text(plants_prey_dmg))
+
+                    damage_query = """
+                        WITH random_villagers AS (
+                            SELECT id 
+                            FROM villagers
+                            WHERE id > 0
+                            ORDER BY RANDOM()
+                            LIMIT :count
+                        )
+                        DELETE FROM villagers 
+                        WHERE id IN (
+                            SELECT id 
+                            FROM random_villagers
+                        )
+                        RETURNING id;
+                    """
+                    result = connection.execute(
+                        sqlalchemy.text(damage_query), 
+                        {"count": affected_count}
+                    )
+
+                    deleted = len(result.fetchall())
+            
+            return {
+                "message": f"Disaster occurred: {disaster_type}",
+                "Villagers Killed": deleted
+            }
+        
+        else:
+            disaster_counter += 1
+            return {
+                "message": "No disaster occurred",
+                "current_probability": f"{base_probability * 100}%",
+                "days_without_disaster": disaster_counter
+            }
+            
+    except Exception as e:
+        print(f"Disaster system error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to process disaster check: {str(e)}"
+        )
