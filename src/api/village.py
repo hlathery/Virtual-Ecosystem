@@ -44,7 +44,7 @@ def get_village_overview():
     Returns a general overview of village characteristics and villagers
     """
     with db.engine.begin() as connection:
-        villager_count = connection.execute(sqlalchemy.text("SELECT COUNT(villagers.id) AS num_villagers FROM villagers")).scalar_one()
+        villager_count = connection.execute(sqlalchemy.text("SELECT COUNT(villagers.id) AS num_villagers FROM villagers")).scalar()
         buildings = connection.execute(sqlalchemy.text("SELECT name, quantity FROM buildings"))
 
     buildings_name = []
@@ -66,24 +66,25 @@ def catalog():
     """
     Gets the catalog of valid buildings available to build
     """
-    with db.engine.begin() as connection:
-        select_query =  """
+    
+    select_query =  """
                             SELECT buildings.name AS type,
                                 catalog.cost AS price
                             FROM buildings
                             JOIN catalog ON buildings.id = catalog.building_id
-                        """
+                       """
+    with db.engine.begin() as connection:
         buildings = connection.execute(sqlalchemy.text(select_query))
-        funds = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM storage WHERE resource_name = 'wood'")).scalar_one()
+        funds = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM storage WHERE resource_name = 'wood'")).scalar()
 
-        types = []
-        costs = []
-        for row in buildings:
-            if row.price < funds:
-                types.append(row.type)
-                costs.append(row.price)
+    types = []
+    costs = []
+    for row in buildings:
+        if row.price < funds:
+            types.append(row.type)
+            costs.append(row.price)
 
-        return {
+    return {
             "buildings": types,
             "costs": costs,
             "funds": funds
@@ -152,7 +153,7 @@ def build_structure(buildings: list[Building]):
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text("UPDATE buildings SET quantity = quantity + :amount WHERE name = :id"), update_list)
 
-    return "OK"
+    return "Structure Built"
 
 
 
