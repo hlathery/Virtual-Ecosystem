@@ -248,6 +248,34 @@ Grabbing nourishment of predators given a specific biome
 ] 
 ```
 
+(Complex)
+### 2.7 Natural Disasters - `/eco/disaster/` (POST)
+Every time this endpoint is called (in-game it is called every time a player progresses) the chances for a natural disaster increase by 2%.
+When a disaster is called, it can affected the nourishment of plants, and can also kill up to 5 villagers
+
+**Response:** (if no disaster has occured)
+
+```json
+[
+    { 
+        "message": "No disaster occurred",
+        "current_probability": float,
+        "days_without_disaster": int
+    }
+] 
+```
+
+**Response:** (if a disaster has occured)
+
+```json
+[
+    {
+      "message": string,
+      "Villagers Killed": int
+    }
+] 
+```
+
 ## 3. Jobs
 
 Used for assigning jobs
