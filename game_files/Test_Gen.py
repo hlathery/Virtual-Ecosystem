@@ -11,9 +11,33 @@ def test_generate_world(weights, random_seed):
     biome_counts = world.count_biomes(tile_map)
     print("Biome counts:", biome_counts)
     
+    try:
+        headers = {
+            "accept": "application/json",
+            "Content-Type": "application/json",
+            "access_token": "hlath"
+        }
+        
+        url = "http://127.0.0.1:3000/eco/biomes/"
+        print(f"Sending request to: {url}")
+        
+        response = requests.post(
+            url,
+            json=biome_counts,
+            headers=headers
+        )
+        print(f"Response status: {response.status_code}")
+        print(f"Response text: {response.text}")
+        
+        if response.status_code == 200:
+            print("Successfully posted biome counts to database")
+        else:
+            print(f"Failed to post biome counts: {response.status_code}")
+    except Exception as e:
+        print(f"Error posting biome counts: {e}")
+    
     world_drawer = WorldDrawer(tile_map)
     world_drawer.draw()
-
 
 def test_emerge(target_weights, random_seed):
     world_drawer = WorldDrawer()
