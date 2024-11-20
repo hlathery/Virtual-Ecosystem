@@ -132,12 +132,12 @@ Returns all biomes with their respective entities and entity nourishment
     {
         "biome_id": int,
         "biome_name": string,
-        "entities": [{"name": string, "nourishment": id}]
+        "entities": [{"name": string, "nourishment": int}]
     }
 ]
 
 ```
-
+(Complex)
 ### 2.2. Posts Biomes `/eco/biomes/`
 A flood fill search algorithm is ran when the map is created. The results are sent to this endpoint.
 
@@ -148,6 +148,14 @@ A flood fill search algorithm is ran when the map is created. The results are se
   "forest": int,
   "grassland": int,
   "beach": int
+}
+```
+
+**Response**
+
+```
+{
+  "message": "Biome counts recorded successfully"
 }
 ```
 
@@ -187,6 +195,28 @@ Spawns entities to a specific biome. User controls plants, predators, prey, and 
 ```json
 {
     "success": "boolean"
+}
+``` 
+
+### 2.5 Updates Nourishment - `/entity/nourishment` (PUT)
+Updates nourishment given the entity id
+
+**Request**
+
+```json
+[
+  {
+    "id": int,
+    "nourishment": int
+  }
+]
+``` 
+
+**Response:** 
+
+```json
+{
+  "message": "Nourishment updated successfully"
 }
 ``` 
 
