@@ -66,34 +66,36 @@ class World():
             map_int.append(map_row)
 
         return map_int
-    
+
+
     def count_biomes(self, tile_map):
         visited = set()
         biome_counts = {
-            "Ocean": 0,
-            "Beach": 0,
-            "Grassland": 0,
-            "Forest": 0
+            "ocean": 0,
+            "beach": 0,
+            "grassland": 0,
+            "forest": 0
         }
         
         MIN_BIOME_SIZES = { # our bounds
-            "Ocean": 10,   
-            "Beach": 100,   
-            "Grassland": 300,
-            "Forest": 20       
+            "ocean": 10,   
+            "beach": 100,   
+            "grassland": 300,
+            "forest": 20       
         }
         
         def get_biome_name(tile_type):
             if tile_type in [OCEAN1, OCEAN2, OCEAN3]: 
-                return "Ocean"
+                return "ocean"
             elif tile_type == BEACH:
-                return "Beach"
+                return "beach"
             elif tile_type == GRASS:
-                return "Grassland"
+                return "grassland"
             elif tile_type == FOREST:
-                return "Forest"
+                return "forest"
         
         def flood_fill(start_x, start_y, target_type):
+            v = []
             stack = [(start_x, start_y)]
             region_size = 0
             
@@ -118,6 +120,7 @@ class World():
                     continue
                     
                 visited.add((x, y))
+                v.append((x,y))
                 region_size += 1
                 
                 # Check all 8 directions
@@ -129,99 +132,20 @@ class World():
                 for next_x, next_y in directions:
                     stack.append((next_x, next_y))
             
-            return region_size
+            return region_size, v
 
         
-        
+        order = []
         for y in range(len(tile_map)):
             for x in range(len(tile_map[0])):
                 if (x, y) not in visited:
                     current_type = tile_map[y][x]
                     biome_name = get_biome_name(current_type)
                     if biome_name:
-                        size = flood_fill(x, y, current_type)
+                        size, ord = flood_fill(x, y, current_type)
+                        order.append({"biome":biome_name,"order":ord})
                         if size >= MIN_BIOME_SIZES[biome_name]:
                             biome_counts[biome_name] += 1
-                            # print(f"Found {biome_name} - Size: {size} tiles")  # for testing
-        
-        return biome_counts
-    
-    def count_biomes(self, tile_map):
-        visited = set()
-        biome_counts = {
-            "Ocean": 0,
-            "Beach": 0,
-            "Grassland": 0,
-            "Forest": 0
-        }
-        
-        MIN_BIOME_SIZES = { # our bounds
-            "Ocean": 10,   
-            "Beach": 100,   
-            "Grassland": 300,
-            "Forest": 20       
-        }
-        
-        def get_biome_name(tile_type):
-            if tile_type in [OCEAN1, OCEAN2, OCEAN3]: 
-                return "Ocean"
-            elif tile_type == BEACH:
-                return "Beach"
-            elif tile_type == GRASS:
-                return "Grassland"
-            elif tile_type == FOREST:
-                return "Forest"
-        
-        def flood_fill(start_x, start_y, target_type):
-            stack = [(start_x, start_y)]
-            region_size = 0
-            
-            if (start_x, start_y) in visited:
-                return 0
-            
-            while stack:
-                x, y = stack.pop()
-                
-                if (x < 0 or x >= len(tile_map[0]) or 
-                    y < 0 or y >= len(tile_map) or
-                    (x, y) in visited):
-                    continue
-                    
-                current_type = tile_map[y][x]
-                
-                
-                if target_type in [OCEAN1, OCEAN2, OCEAN3]:
-                    if current_type not in [OCEAN1, OCEAN2, OCEAN3]:
-                        continue
-                elif current_type != target_type:
-                    continue
-                    
-                visited.add((x, y))
-                region_size += 1
-                
-                # Check all 8 directions
-                directions = [
-                    (x+1, y), (x-1, y), (x, y+1), (x, y-1),
-                    (x+1, y+1), (x+1, y-1), (x-1, y+1), (x-1, y-1)
-                ]
-                
-                for next_x, next_y in directions:
-                    stack.append((next_x, next_y))
-            
-            return region_size
+        res = requests.post("http://127.0.0.1:3000/eco/biomes/", json=biome_counts, headers={"accept": "application/json", "access_token": "hlath", "Content-Type": "application/json"})
 
-        
-        
-        for y in range(len(tile_map)):
-            for x in range(len(tile_map[0])):
-                if (x, y) not in visited:
-                    current_type = tile_map[y][x]
-                    biome_name = get_biome_name(current_type)
-                    if biome_name:
-                        size = flood_fill(x, y, current_type)
-                        if size >= MIN_BIOME_SIZES[biome_name]:
-                            biome_counts[biome_name] += 1
-                            # print(f"Found {biome_name} - Size: {size} tiles")  # for testing
-        
-
-        return biome_counts
+        return order

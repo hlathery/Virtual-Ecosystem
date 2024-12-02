@@ -4,6 +4,7 @@ import time
 import threading
 import requests
 import json
+from World import *
 
 class WorldDrawer:
 
@@ -20,7 +21,7 @@ class WorldDrawer:
         self.get_headers = {"accept": "application/json", "access_token": "hlath"}
         self.post_headers = {"accept": "application/json", "access_token": "hlath", "Content-Type": "application/json"}
         self.menu_options = ["Catalog", "Village Info", "Jobs", "Eco Info"]
-        self.eco = {"Water Bodies":0, "Forests":0, "Grass":0, "Desert":0}
+        self.ord = []
 
         if __name__ == "__main__":
             # Start FastAPI in a separate thread
@@ -34,11 +35,64 @@ class WorldDrawer:
             for tile_pos in TERRAIN_TILES[terrain_type]:
                 tile_types.append(self.tilesheet.subsurface((tile_pos[0], tile_pos[1], TILESIZE, TILESIZE)))
             self.terrain_tiles.append(tile_types)
+        self.building_tile = self.tilesheet.subsurface((BUILDING_TILE[0], BUILDING_TILE[1], TILESIZE, TILESIZE))
 
     def run_fastapi():
         import main
 
     def draw(self):
+        for _ in range(0,5):
+            res = requests.put("http://127.0.0.1:3000/village/create_villager", headers=self.post_headers)
+        self.ord = World.count_biomes(World,self.height_map)
+        eco = requests.get("http://127.0.0.1:3000/eco/", headers=self.get_headers).json()
+        update = []
+        for elem in eco:
+            if elem['biome_name'] == 'grassland':
+                update.append({
+                    'nourishment':100,
+                    'entity_type':'predators',
+                    'biome_id':elem['biome_id']
+                })
+                update.append({
+                    'nourishment':100,
+                    'entity_type':'prey',
+                    'biome_id':elem['biome_id']
+                })
+                update.append({
+                    'nourishment':100,
+                    'entity_type':'plants',
+                    'biome_id':elem['biome_id']
+                })
+            elif elem['biome_name'] == 'forest':
+                update.append({
+                    'nourishment':100,
+                    'entity_type':'predators',
+                    'biome_id':elem['biome_id']
+                })
+                update.append({
+                    'nourishment':100,
+                    'entity_type':'prey',
+                    'biome_id':elem['biome_id']
+                })
+                update.append({
+                    'nourishment':100,
+                    'entity_type':'trees',
+                    'biome_id':elem['biome_id']
+                })
+                update.append({
+                    'nourishment':100,
+                    'entity_type':'plants',
+                    'biome_id':elem['biome_id']
+                })
+            elif elem['biome_name'] == 'ocean':
+                update.append({
+                    'nourishment':100,
+                    'entity_type':'water',
+                    'biome_id':elem['biome_id']
+                })
+
+        res = requests.post("http://127.0.0.1:3000/eco/entity", json=update, headers=self.post_headers)
+
         while True:
             self.draw_tiles(self.height_map)
             pygame.display.flip()
@@ -46,6 +100,7 @@ class WorldDrawer:
             self.draw_tiles(self.height_map)
             pygame.display.flip()
             self.cont()
+            self.ord = World.count_biomes(World,self.height_map)
             c, m = self.wait_key()
 
     def wait_key(self, click=False, menu=True):
@@ -77,6 +132,7 @@ class WorldDrawer:
         job_list = requests.get("http://127.0.0.1:3000/jobs/", headers=self.get_headers).json()
         overview = requests.get("http://127.0.0.1:3000/village/", headers=self.get_headers).json()
         catalog_list = requests.get("http://127.0.0.1:3000/village/catalog", headers=self.get_headers).json()
+        eco = requests.get("http://127.0.0.1:3000/eco/", headers=self.get_headers).json()
         while menu:
             menu = pygame.Rect(x, y, 400, 600)
             pygame.draw.rect(self.display_surface, (0,0,0), menu)
@@ -104,7 +160,7 @@ class WorldDrawer:
                     buttons.append(button)
                     pygame.draw.rect(self.display_surface, (0,0,255), button)
                     self.draw_text("Add "+catalog_list['buildings'][i], (255,255,255), x+5, y+55+((interval+height)*c))
-                    self.draw_text(f"{catalog_list['funds']/catalog_list['costs'][i]}", (255,255,255), x+375, y+55+((interval+height)*c))
+                    self.draw_text(f"{round(catalog_list['funds']/catalog_list['costs'][i])}", (255,255,255), x+375, y+55+((interval+height)*c))
                     c += 1
 
                 mx, my = pygame.mouse.get_pos()
@@ -130,10 +186,10 @@ class WorldDrawer:
                 c = 0
                 for i in range(0, len(overview["buildings"])):
                     self.draw_text(overview["buildings"][i], (255,255,255), x+5, y+55+((interval+height)*c))
-                    self.draw_text(f"{overview['num_buildings']}", (255,255,255), x+375, y+55+((interval+height)*c))
+                    self.draw_text(f"{overview['num_buildings'][i]}", (255,255,255), x+375, y+55+((interval+height)*c))
                     c += 1
                 for job in job_list:
-                    self.draw_text(job["job_title"], (255,255,255), x+5, y+55+((interval+height)*c))
+                    self.draw_text(job["job_name"], (255,255,255), x+5, y+55+((interval+height)*c))
                     self.draw_text(f"{job['villagers_assigned']}", (255,255,255), x+375, y+55+((interval+height)*c))
                     c += 1
                 self.draw_text("Population", (255,255,255), x+5, y+55+((interval+height)*c))
@@ -145,23 +201,23 @@ class WorldDrawer:
                 c = 1
                 buttons = []
                 for job in job_list:
-                    if job["job_title"] != "unassigned":
+                    if job["job_name"] != "unassigned":
                         button = pygame.Rect(x, y+50+((interval+height)*c), 150, height)
                         buttons.append(button)
                         pygame.draw.rect(self.display_surface, (0,0,255), button)
-                        self.draw_text("Add "+job["job_title"], (255,255,255), x+5, y+55+((interval+height)*c))
+                        self.draw_text("Add "+job["job_name"], (255,255,255), x+5, y+55+((interval+height)*c))
                         self.draw_text(f"{job['villagers_assigned']}", (255,255,255), x+375, y+55+((interval+height)*c))
                     else:
                         c -= 1
-                        self.draw_text(job["job_title"], (255,255,255), x+5, y+55)
+                        self.draw_text(job["job_name"], (255,255,255), x+5, y+55)
                         self.draw_text(f"{job['villagers_assigned']}", (255,255,255), x+375, y+55)
                     c += 1
                 for job in job_list:
-                    if job["job_title"] != "unassigned":
+                    if job["job_name"] != "unassigned":
                         button = pygame.Rect(x, y+50+((interval+height)*c), 150, height)
                         buttons.append(button)
                         pygame.draw.rect(self.display_surface, (0,0,255), button)
-                        self.draw_text("Remove "+job["job_title"], (255,255,255), x+5, y+55+((interval+height)*c))
+                        self.draw_text("Remove "+job["job_name"], (255,255,255), x+5, y+55+((interval+height)*c))
                         c += 1
 
                 mx, my = pygame.mouse.get_pos()
@@ -170,27 +226,27 @@ class WorldDrawer:
                     if b.collidepoint(mx, my):
                         if click:
                             if c < 6:
-                                if job_list[c%7]["job_title"] == "unassigned":
+                                if job_list[c%7]["job_name"] == "unassigned":
                                     c += 1
                                 job_list[c%7]["villagers_assigned"] += 1
                                 for job in job_list:
-                                    if job["job_title"] == "unassigned":
+                                    if job["job_name"] == "unassigned":
                                         job["villagers_assigned"] -= 1
                             else:
-                                if job_list[(c+1)%7]["job_title"] == "unassigned":
+                                if job_list[(c+1)%7]["job_name"] == "unassigned":
                                     c += 1
                                 job_list[(c+1)%7]["villagers_assigned"] -= 1
                                 for job in job_list:
-                                    if job["job_title"] == "unassigned":
+                                    if job["job_name"] == "unassigned":
                                         job["villagers_assigned"] += 1
                     c += 1
             else:
                 interval = 20
                 height = 20
                 c = 0
-                for type, num in self.eco.items():
-                    self.draw_text(type, (255,255,255), x+5, y+55+((interval+height)*c))
-                    self.draw_text(f"{num}", (255,255,255), x+375, y+55+((interval+height)*c))
+                for elem in eco:
+                    self.draw_text(elem['biome_name'], (255,255,255), x+5, y+55+((interval+height)*c))
+                    self.draw_text(elem['entities'], (255,255,255), x+375, y+55+((interval+height)*c))
                     c += 1
 
             pygame.display.flip()
@@ -206,11 +262,97 @@ class WorldDrawer:
             click, menu = self.wait_key()
             if menu == False:
                 res = requests.put("http://127.0.0.1:3000/jobs/assignments", json=job_list, headers=self.post_headers)
-                res = requests.post("http://127.0.0.1:3000/village/build_building", json=build, data=catalog_list["funds"], headers=self.post_headers)
+                res = requests.post("http://127.0.0.1:3000/village/build_building", json=build, headers=self.post_headers)
+                num = 0
+                sum = 0
+                for elem in build:
+                    num += elem['quantity']
+                    for i in range(0,len(catalog_list['buildings'])):
+                        if elem['building_name'] == catalog_list['buildings'][i]:
+                            sum += num*catalog_list['costs'][i]
+                res = requests.put("http://127.0.0.1:3000/village/fill_inventory",
+                           json=[{'resource_name':'wood', 'amount':(-1*sum)}],
+                           headers=self.post_headers)
 
 
     def cont(self):
-        time.sleep(5)
+        eco = requests.get("http://127.0.0.1:3000/eco/", headers=self.get_headers).json()
+        jobs = requests.get("http://127.0.0.1:3000/jobs/", headers=self.get_headers).json()
+
+        w, f = [], []
+        for elem in self.ord:
+            if elem['biome'] == 'ocean' and len(w) < len(elem['order']):
+                w = elem['order']
+            elif elem['biome'] == 'forest' and len(f) < len(elem['order']):
+                f = elem['order']
+
+        forager, lumber, hunter = 0, 0, 0
+        for elem in jobs:
+            if elem['job_name'] == 'forager':
+                forager = elem['villagers_assigned']
+            elif elem['job_name'] == 'lumberjack':
+                lumber = elem['villagers_assigned']
+            elif elem['job_name'] == 'hunter':
+                hunter = elem['villagers_assigned']
+
+        w_bool = False
+        f_bool = False
+        for elem in eco:
+            if elem['biome_name'] == 'grassland' or elem['biome_name'] == 'forest':
+                biome_pred = requests.get(f"http://127.0.0.1:3000/eco/predator/{elem['biome_id']}", headers=self.get_headers).json()
+                biome_prey = requests.get(f"http://127.0.0.1:3000/eco/prey/{elem['biome_id']}", headers=self.get_headers).json()
+                biome_plants = requests.get(f"http://127.0.0.1:3000/eco/plants/{elem['biome_id']}", headers=self.get_headers).json()
+                res = requests.put("http://127.0.0.1:3000/eco/entity/nourishment",
+                                json=[{'id':biome_pred['id'], 'nourishment':(-1*hunter*5)+10},
+                                {'id':biome_prey['id'], 'nourishment':(-1*hunter*5)+10},
+                                {'id':biome_plants['id'], 'nourishment':(-1*forager*5)+10}],
+                                headers=self.post_headers)
+            elif elem['biome_name'] == 'ocean' and w_bool == False:
+                w_bool = True
+                biome_water = requests.get(f"http://127.0.0.1:3000/eco/water/{elem['biome_id']}", headers=self.get_headers).json()
+                res = requests.put("http://127.0.0.1:3000/eco/entity/nourishment", json=[{'id':biome_water['id'], 'nourishment':(-1*forager*5)+10}], headers=self.post_headers)
+                for o in self.ord:
+                    if o['biome'] == 'ocean':
+                        c = round(len(o['order'])*(1-((biome_water['nourishment']-forager*5)/100)))
+                        i = 0
+                        for coord in reversed(o['order']):
+                            self.height_map[coord[1]][coord[0]] = 3
+                            i += 1
+                            if i >= c:
+                                break
+                        break
+            elif elem['biome_name'] == 'forest' and f_bool == False:
+                f_bool = True
+                biome_trees = requests.get(f"http://127.0.0.1:3000/eco/trees/{elem['biome_id']}", headers=self.get_headers).json()
+                res = requests.put("http://127.0.0.1:3000/eco/entity/nourishment", json=[{'id':biome_trees['id'], 'nourishment':(-1*lumber*5)+10}], headers=self.post_headers)
+                for o in self.ord:
+                    if o['biome'] == 'forest':
+                        c = round(len(o['order'])*(1-((biome_water['nourishment']-lumber*5)/100)))
+                        i = 0
+                        for coord in reversed(o['order']):
+                            self.height_map[coord[1]][coord[0]] = 4
+                            i += 1
+                            if i >= c:
+                                break
+                        break
+        res = requests.delete("http://127.0.0.1:3000/eco/clean/", headers=self.get_headers)
+        pop = requests.get("http://127.0.0.1:3000/village/", headers=self.get_headers).json()
+        res = requests.put("http://127.0.0.1:3000/village/fill_inventory",
+                           json=[{'resource_name':'water', 'amount':(-1*pop['num_villager']*5)+(forager*5)},
+                                 {'resource_name':'food', 'amount':(-1*pop['num_villager']*5)+(hunter*5)},
+                                 {'resource_name':'wood', 'amount':(lumber*5)}],
+                           headers=self.post_headers)
+        res = requests.post("http://127.0.0.1:3000/village/villager_update", headers=self.post_headers)
+        res = requests.delete("http://127.0.0.1:3000/village/delete_villager", headers=self.get_headers)
+        buildings = requests.get("http://127.0.0.1:3000/village/", headers=self.get_headers).json()
+        for i in range(0,len(buildings['buildings'])):
+            if buildings['buildings'][i] == 'Villager Hut':
+                result = (buildings['num_buildings'][i]*5)-pop['num_villager']
+                if result > 0:
+                    for _ in range(0,result):
+                        res = requests.put("http://127.0.0.1:3000/village/create_villager", headers=self.post_headers)
+                break
+        res = requests.post("http://127.0.0.1:3000/eco/disaster", headers=self.post_headers)
 
     def draw_tiles(self, terrain_type_map):
         for y, row in enumerate(terrain_type_map):
@@ -233,6 +375,15 @@ class WorldDrawer:
                         break
                 self.display_surface.blit(image, (x * TILESIZE, y * TILESIZE))
 
+        buildings = requests.get("http://127.0.0.1:3000/village/", headers=self.get_headers).json()
+        buildings = sum(buildings['num_buildings'])
+        g, w, f = [], [], []
+        for elem in self.ord:
+            if elem['biome'] == "grassland" and g == [] and len(elem['order']) >= buildings:
+                g = elem['order']
+
+        for i in range(0,buildings):
+            self.display_surface.blit(self.building_tile, (g[i][1] * TILESIZE, g[i][0] * TILESIZE))
 
     def get_tile_index_for_type(self, tile_corners, terrain_type):
         tile_index = 0

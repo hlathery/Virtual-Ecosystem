@@ -5,5 +5,8 @@
     "python.analysis.extraPaths": [
         "./src/api",
         "./game_files"
-    ]
+    ],
+    "cSpell.enabledFileTypes": {
+        "python": false
+    }
 }

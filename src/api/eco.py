@@ -56,7 +56,7 @@ class DisasterType:
     REBELLION = "rebellion"  # Based on low satisfaction/resources
 
 
-@router.post("/")
+@router.get("/")
 def get_eco_overview():
     """
     Returns a general overview of the ecosystem with each biome listed once, showing all entities
@@ -131,26 +131,29 @@ def post_biome_counts(biomes: BiomeCounts):
         )
     
 
-@router.get("/plants/", status_code = status.HTTP_200_OK, response_description="Success")
-def plants_overview():
+@router.get("/plants/{biome_id}", status_code = status.HTTP_200_OK, response_description="Success")
+def plants_overview(biome_id: int):
     """
     Returns the total nourishment of plants in the entire ecosystem
     """
     
     plants_query =  """
-                        SELECT entity_type AS type, 
-                            SUM(nourishment) AS nourishment
+                        SELECT id,
+                            entity_type AS type,
+                            nourishment
                         FROM entities
                         WHERE entity_type = 'plants'
-                        GROUP BY entity_type
+                            AND biome_id = :biome_id
                     """
     
     with db.engine.begin() as connection:
-        plants_table = connection.execute(sqlalchemy.text(plants_query)).fetchone()
+        plants_table = connection.execute(sqlalchemy.text(plants_query), {'biome_id':biome_id}).fetchone()
+        id = plants_table.id
         entity_type = plants_table.type
         total = plants_table.nourishment
 
-    return {"entity_type": entity_type,
+    return {"id": id,
+            "entity_type": entity_type,
             "nourishment": total}
     
 
@@ -267,28 +270,30 @@ def update_nourishment(entity_updates: list[EntityUpdate]):
 
 
 @router.get("/prey/{biome_id}", status_code = status.HTTP_200_OK, response_description="Success")
-def biome_prey(biome_id : int):
+def biome_prey(biome_id: int):
     """
     Returns the nourishment of prey in the requested biome 
     """
     with db.engine.begin() as connection:
         
         prey_query = """
-                        SELECT entity_type AS type, 
-                            SUM(nourishment) AS nourishment
+                        SELECT id,
+                            entity_type AS type,
+                            nourishment
                         FROM entities
                         WHERE entity_type = 'prey'
                             AND biome_id = :biome_id
-                        GROUP BY entity_type
                      """
         prey = connection.execute(sqlalchemy.text(prey_query), {"biome_id":biome_id}).fetchone()
 
+    id = prey.id
     entity_type = prey.type
     amount = prey.nourishment
-    return({
-        "entity_type": entity_type,
-        "nourishment": amount
-    })
+    return {
+            "id": id,
+            "entity_type": entity_type,
+            "nourishment": amount
+        }
 
 
 @router.get("/predator/{biome_id}", status_code = status.HTTP_200_OK, response_description="Success")
@@ -298,26 +303,87 @@ def biome_predator(biome_id: int):
     """
     with db.engine.begin() as connection:
         predator_query = """
-                        SELECT entity_type AS type, 
-                            SUM(nourishment) AS nourishment
+                        SELECT id,
+                            entity_type AS type,
+                            nourishment
                         FROM entities
                         WHERE entity_type = 'predators'
                             AND biome_id = :biome_id
-                        GROUP BY entity_type
                      """
         predator = connection.execute(sqlalchemy.text(predator_query), {"biome_id":biome_id}).fetchone()
 
+    id = predator.id
     entity_type = predator.type
     nourish_amount = predator.nourishment
-    return({
-        "entity_type": entity_type,
-        "nourishment": nourish_amount
-    })
+    return {
+            "id": id,
+            "entity_type": entity_type,
+            "nourishment": nourish_amount
+        }
 
 
+@router.get("/water/{biome_id}", status_code = status.HTTP_200_OK, response_description="Success")
+def biome_water(biome_id: int):
+    """
+    Returns the water nourishment of the given biome
+    """
+    with db.engine.begin() as connection:
+        water_query = """
+                        SELECT id,
+                            entity_type AS type,
+                            nourishment
+                        FROM entities
+                        WHERE entity_type = 'water'
+                            AND biome_id = :biome_id
+                     """
+        water = connection.execute(sqlalchemy.text(water_query), {"biome_id":biome_id}).fetchone()
 
+    id = water.id
+    entity_type = water.type
+    nourish_amount = water.nourishment
+    return {
+            "id": id,
+            "entity_type": entity_type,
+            "nourishment": nourish_amount
+        }
 
+@router.get("/trees/{biome_id}", status_code = status.HTTP_200_OK, response_description="Success")
+def biome_trees(biome_id: int):
+    """
+    Returns the tree nourishment of the given biome
+    """
+    with db.engine.begin() as connection:
+        water_query = """
+                        SELECT id,
+                            entity_type AS type,
+                            nourishment
+                        FROM entities
+                        WHERE entity_type = 'trees'
+                            AND biome_id = :biome_id
+                     """
+        trees = connection.execute(sqlalchemy.text(water_query), {"biome_id":biome_id}).fetchone()
 
+    id = trees.id
+    entity_type = trees.type
+    nourish_amount = trees.nourishment
+    return {
+            "id": id,
+            "entity_type": entity_type,
+            "nourishment": nourish_amount
+        }
+
+@router.delete("/clean/", status_code = status.HTTP_200_OK, response_description="Success")
+def clean_entities():
+    """
+    Deletes biomes that have zero nourishment or below
+    """
+    with db.engine.begin() as connection:
+        clean_query = """
+                        DELETE
+                        FROM entities
+                        WHERE nourishment <= 0
+                     """
+        connection.execute(sqlalchemy.text(clean_query))
 
 # global variable for disasters
 disaster_counter = 0
