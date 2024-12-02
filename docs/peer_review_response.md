@@ -65,7 +65,7 @@ Endpoint has been changed.
 
 ### 4. Consider checking for empty lists before running queries like in spawn_prey and grow_plants
 
--- NOT DONE
+-- Fixed
 
 ### 5. Check to make sure that valid biome ids are being passed in eco.py, for example in spawn_prey, make sure that the biome id matches one available option. If not, throw an error
 
@@ -73,7 +73,7 @@ Endpoint has been changed.
 
 ### 6. Make sure that the get endpoints like biome_prey, catalog, get_job_list, etc. can handle empty lists. For example, if biome_prey searches but has no data, consider returning something like “No prey found!” for clarity
 
--- WIP
+-- Fixed
 
 ### 7. Consider adding ledgers for data like jobs for job_history, villagers_created, or population so it is easier to keep track and debug if needed
 
