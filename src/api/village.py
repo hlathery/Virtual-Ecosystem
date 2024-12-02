@@ -91,25 +91,35 @@ def catalog():
         }
 
 
-
-
-@router.put("/create_villager")
-def create_villager():
+@router.put("/villager")
+def create_villager(amount: int):
     """
     Creates one or many villagers (id auto incrementing and job_id can start null)
     """
+    if amount == 0:
+        return "No villagers created"
+    elif amount < 0:
+        return "Amount must be greater than 0!"
+   
+    update_list = list()
+    for _ in range(0, amount):
+       
+        update_list.append({"age": 18,
+                            "nourishment":100})
 
     insert_query =  """
-                        INSERT INTO villagers (job_id, age, nourishment)
-                        VALUES (0, 18, 100)
+                        INSERT INTO villagers (age, nourishment)
+                        VALUES (:age, :nourishment)
                     """
 
     with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text(insert_query))
+        connection.execute(sqlalchemy.text(insert_query), update_list)
+
+    return f"{amount} villager(s) succesfully created"
 
 
-@router.delete("/delete_villager")
-def remove_villager():
+@router.delete("/villager")
+def remove_villager(amount: int):
     """
     Kills the oldest amount of villagers depending on amount passed in
     """
@@ -117,17 +127,25 @@ def remove_villager():
         villagers = connection.execute(sqlalchemy.text("SELECT COUNT(*) AS amount FROM villagers"))
         vil = villagers.fetchone()
 
-        if amount > vil.amount:
-            return f"There are only {vil.amount} villager(s) able to be removed"
+        if amount == 0:
+            return "No villagers removed."
+        elif amount > vil.amount:
+            return f"There are only {vil.amount} villager(s) able to be removed."
+        elif amount < 0:
+            return "Amount must be greater than 0."
          
         kill_villager_query =   """
                                     DELETE FROM villagers
-                                    WHERE nourishment = 0
-                                        OR age >= 75
+                                    WHERE id IN (
+                                        SELECT id FROM villagers
+                                        ORDER BY age DESC
+                                        LIMIT :num
+                                        ) 
                                 """
-        connection.execute(sqlalchemy.text(kill_villager_query))
+        connection.execute(sqlalchemy.text(kill_villager_query),{"num": amount})
 
-    return "OK"
+    return f"{amount} villager(s) succesfully removed"
+
 
 @router.post("/villager_update")
 def update_villager():
@@ -146,7 +164,7 @@ def update_villager():
         connection.execute(sqlalchemy.text(update_villager_query),{'water':water,'food':food})
 
     # Make sure you can't take more than available
-    return f"{amount} villager(s) succesfully removed"
+    return "Villagers consumed food and water"  # PLACEHOLDER
 
 
 @router.post("/build_building")
@@ -154,21 +172,26 @@ def build_structure(buildings: list[Building]):
     """
     Takes in buildings user wants to build
     """
+    if len(buildings) == 0:
+        return "No structures built"
 
+    buildings_sum = 0
     update_list = []
     for building in buildings:
         update_list.append({
             "amount": building.quantity,
-            "id": building.building_name
+            "name": building.building_name
         })
 
+        if building.quantity <= 0:
+            return "Building must have quantity greater than 0!"
+        buildings_sum += building.quantity
+
     with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text("UPDATE buildings SET quantity = quantity + :amount WHERE name = :id"), update_list)
+        connection.execute(sqlalchemy.text("UPDATE buildings SET quantity = quantity + :amount WHERE name = :name"), update_list)
 
-    return "Structure Built"
-
-
-
+    # return f"{buildings_sum} structure(s) built"
+    return f"Structures built: {update_list}"
 
 
 @router.put("/fill_inventory")
@@ -178,6 +201,9 @@ def adjust_storage(storages: list[BuildingStorage]):
     Ex: If getting food from farm you would make it 50, but if taking water to give to villagers make
     it -25. Since SQL statement is doing quantity + :quantity 
     """
+    if len(storages) == 0:
+        return "Must provide resources to adjust!"
+
     with db.engine.begin() as connection:
         counts = connection.execute(sqlalchemy.text("SELECT resource_name, COUNT(*) AS tot FROM storage GROUP BY resource_name"))
 
