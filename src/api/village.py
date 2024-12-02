@@ -93,36 +93,23 @@ def catalog():
 
 
 
-@router.put("/villager")
-def create_villager(villagers: list[Villagers]):
+@router.put("/create_villager")
+def create_villager():
     """
     Creates one or many villagers (id auto incrementing and job_id can start null)
     """
-    if len(villagers) == 0:
-        return {"No villagers created"}
-    
-    update_list = list()
-    for villager in villagers:
-        if (villager.age < 0 or villager.age > 100 or
-            villager.nourishment < 0 or villager.nourishment > 100):
-              raise HTTPException(status_code=400, detail="Age and nourishment must be between 0-100 inclusive, please retry")
-        # Nothing before or after exception will be added to DB if one case fails
-        update_list.append({"age":villager.age,
-                            "nourishment":villager.nourishment})
 
     insert_query =  """
-                        INSERT INTO villagers (age, nourishment)
-                        VALUES (:age, :nourishment)
+                        INSERT INTO villagers (job_id, age, nourishment)
+                        VALUES (0, 18, 100)
                     """
 
     with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text(insert_query), update_list)
-
-    return f"{len(villagers)} villager(s) succesfully created"
+        connection.execute(sqlalchemy.text(insert_query))
 
 
-@router.delete("/villager")
-def remove_villager(amount: int):
+@router.delete("/delete_villager")
+def remove_villager():
     """
     Kills the oldest amount of villagers depending on amount passed in
     """
@@ -135,13 +122,28 @@ def remove_villager(amount: int):
          
         kill_villager_query =   """
                                     DELETE FROM villagers
-                                    WHERE id IN (
-                                        SELECT id FROM villagers
-                                        ORDER BY age DESC
-                                        LIMIT :num
-                                        ) 
+                                    WHERE nourishment = 0
+                                        OR age >= 75
                                 """
-        connection.execute(sqlalchemy.text(kill_villager_query),{"num":amount})
+        connection.execute(sqlalchemy.text(kill_villager_query))
+
+    return "OK"
+
+@router.post("/villager_update")
+def update_villager():
+    """
+    Updates villager population after decisions are made based on food and water income of that year
+    """
+    with db.engine.begin() as connection:
+        water = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM storage WHERE resource_name = 'water'")).scalar_one()
+        food = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM storage WHERE resource_name = 'food'")).scalar_one()
+        update_villager_query = """
+                                    UPDATE villagers
+                                    SET
+                                        age = age+1,
+                                        nourishment = nourishment+:water+:food-100
+                                """
+        connection.execute(sqlalchemy.text(update_villager_query),{'water':water,'food':food})
 
     # Make sure you can't take more than available
     return f"{amount} villager(s) succesfully removed"

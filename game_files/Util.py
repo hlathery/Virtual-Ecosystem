@@ -9,6 +9,7 @@ WINDOW_HEIGHT   = 1080
 TILESIZE        = 16       # tile width/height in pixels in tilesheet
 WORLD_X         = (WINDOW_WIDTH + TILESIZE - 1) // TILESIZE
 WORLD_Y         = (WINDOW_HEIGHT + TILESIZE - 1) // TILESIZE
+BUILDING_TILE = (224,832)
 
 
 # Terrain types
