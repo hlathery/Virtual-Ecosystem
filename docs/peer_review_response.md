@@ -150,4 +150,102 @@ Endpoint has been changed.
 
 -- test_utils.py has been removed.
 
+# Katie Slobodsky
 
+### 1. In post_biome_counts in eco.py, parameterize the SQL statement instead of using an f string to avoid SQL injection
+
+-- All f-strings have been removed.
+
+### 2. Consider deleting unneeded code (especially in village.py) that is commented out to improve readability
+
+-- Done. All code not being used has been removed.
+
+### 3. Since name and quantity for buildings are part of the same table, maybe when returning values for get_village_overview() you can combine the name and count and return a single list of dictionaries with name and count in each building item.
+
+-- We looked at this, and decided for the game state, it was best to keep this the way it was, only because for the game, it's best to see total of everything to watch the overall gamestate.
+
+### 4. In adjust_storage, you can reduce the number of database calls by combining the logic under one “with db.engine.begin() as connection:” instead of 2. This would reduce runtime.
+
+-- Fixed, only one database call.
+
+### 5. For kill_villager, instead of just returning “OK” maybe you can return a list of dictionaries of deleted villagers information, such as their name, id, and age. This could confirm that the correct villagers were deleted.
+
+-- Updated to display id and age when deleted (the villagers are nameless).
+
+### 6. In build_structure, make sure to check if the player has enough resources before updating building quantity. You can do this by comparing the requested resources and available resources.
+
+-- Logic for this will be handled in game files.
+
+### 7. Consider adding more error handling, for example in adjust_storage, in the case where the resource quantity is less than the requested storage adjustment, this would throw an error
+
+-- Gone through and made sure error handling statements were used where needed for certain values.
+
+### 8. There could be more logging, such as when a villager is created or killed, storage is adjusted, or a building is built. This could help with testing.
+
+-- We were testing with some logging, and now it has been removed while closing in on the final version.
+
+### 9. Instead of looping through each job, you can group villagers by job and update them in a single operation where possible; this can reduce the number of queries
+
+--  All database calls have been pulled out of loops, and better query calls across files have been made.
+
+### 10. A possible improvement for get_job_list could be to add sorting or filtering for more organization (e.g. sorting by job_name)
+
+-- The query call is already pretty simple, so we decided not to change it.
+
+### 11. For functions that require updating, add more checks to ensure that the update could be completed to avoid miscalculations and mismatches in data. If not, roll back the transaction and ensure that nothing was updated to avoid concurrency errors.
+
+-- SQLAlchemy has built-in transaction management, if there is an exception (which we've added), everything will be rolled back.
+
+#### 12. “Entitys” spelled wrong in eco.py - consider changing to “entities”
+
+-- Corrected.
+
+# Timothy Matthies
+
+### 1 .You can make prey_overview more readable when setting entity_type and total by using prey_table.entity_type and prey_table.Total, respectively.
+
+-- prey_overview doesn't exist anymore, it's been combined into another endpoint. However, it should be more readable.
+
+### 2. It's very hard to read the first two lines of post_biome_counts. I'd say either clean it up or comment on what's going on. It might also just be my unfamiliarity with Python.
+
+-- The endpoint has a better description (as well as an entire rehaul in its functionality), should be much more readable.
+
+### 3. See Got assignments workflow working. NOTE: Perlin no longer works for no… #1 but for plants_overview.
+
+-- Perlin has been worked on and fixed for the endpoints.
+
+### 4. Why are results being put in a list if there's only on item in plants_overview and prey_overview? I think it should be a single object instead of a list.
+
+-- This was a similar concern from another reviewer, due to our game state we want to show the overall total.
+
+### 5. In spawn_prey, it seems perfectly set up to be legerized instead of just updating values. Almost all that would need to happen would be change it from update to insert. Would be easier than looking for individual lines to update.
+
+-- We've reorganized some of our tables, but we decided to keep our structure because we have more of a game-like state.
+
+### 6. See Got assignments workflow working. NOTE: Perlin no longer works for no… #1 but for biome_prey.
+
+-- Perlin has been worked on and fixed for the endpoints.
+
+### 7. See Got assignments workflow working. NOTE: Perlin no longer works for no… #1 but for biome_predator.
+
+-- Perlin has been worked on and fixed for the endpoints.
+
+### 8. What is the point of the post_time function? The time is not being posted, a get shouldn't be used to change the database, and is does not even call the database??? What is it supposed to do?
+
+-- post_time has been removed.
+
+### 9. With how your set up is right now, I'd recommend being able to choose which villager to kill off via ids in kill_villagers, instead of just killing the oldest ones. Could also be interesting if there were something like natural disasters in the game.
+
+-- We added natural disasters that randomly kill villagers, because of this, we're keeping killing off the oldest ones as there is now a means for any villager to die a different way.
+
+### 10. Should there be checks in build_structures? At the moment it looks as though anything could be bought without care for money. It also does not subtract resources used, so even if I were to play the game as intended, only buying what I were supposed to, it would cost me no money.
+
+-- The "money" is the resources the user has to build.
+
+### 11. In adjust_storage, do the materials need to be split across all buildings like it is? How you are treating it right now, it seems like it would be easier and have the same effect if you were to just keep one storage place, and add storage to it if any buildings are bought.
+
+-- Each building is suppose to come with its own storage, so buying a building allows more villagers and its own storage as well.
+
+### 12. For the code in assign_villager, it looks like a different style of multi-line input to sqlalchemy is being used. I think that the other style used, where a single text is created and multiple dictionaries are passed, looks like it would work better. I'll be implementing it into my own code so that loops are not continuously making database calls.
+
+-- the assign_villager endpoint has been changed (most of the endpoints have) and now have the same style.
