@@ -77,7 +77,7 @@ Endpoint has been changed.
 
 ### 7. Consider adding ledgers for data like jobs for job_history, villagers_created, or population so it is easier to keep track and debug if needed
 
--- To Talk About.
+-- We've reorganized some of our tables, but we decided to keep our structure because we have more of a game-like state.
 
 ### 8. Consider adding comments on less straightforward endpoints such as post_biome_counts so it is easier to read.
 
@@ -85,11 +85,11 @@ Endpoint has been changed.
 
 ### 9. Consider adding errors and error messages for when an invalid building/biome type is passed in build_building, spawn_predator, spawn_prey, etc.
 
--- WIP
+-- Added
 
 ### 10. Consider adding errors and error messages for when a user tries to kill more villagers than are available
 
--- WIP
+-- This isn't a big issue, as when there are no more villagers, the game pretty much ends, and if 3 villagers are supposed to die and there are only 2, it will still kill the 2 without issue.
 
 ### 11. Consider adding logs or ledgers for user actions, such as when a user tries to create/kill villagers
 
