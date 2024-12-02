@@ -98,3 +98,31 @@ Endpoint has been changed.
 ### 12. For some PUT endpoints like assign_villager, consider returning something more useful than “OK” for example, you could return how many villagers were reassigned
 
 -- Added.
+
+# Amir Minabian
+
+### 1. Naming Conventions: Consider renaming variables like id, name, and quantity to more descriptive alternatives where possible. For instance, village_id or resource_name to clarify the context in each module.
+
+### 2. Code Modularization: Large functions such as those in assignments.py and eco.py can be broken down into smaller, modular functions. For instance, separating data validation and processing logic in assignments.py could improve readability and debugging.
+
+### 3. Repeated Code: There are repetitive API response structures, particularly in handling requests in main.py. Consider creating a utility function to handle common response formatting and error responses to make the code DRY (Don’t Repeat Yourself).
+
+### 4. Error Handling: Expand on error handling, especially in endpoints like village/inventory and village/catalog. Adding specific exceptions for different types of failures (e.g., ValueError for invalid inputs) could make debugging and user feedback clearer.
+
+### 5. Documentation: Add more detailed docstrings for complex functions, particularly in eco.py. Explaining parameters, return values, and any expected exceptions would improve maintainability.
+
+### 6. Code Comments: Certain blocks in auth.py could benefit from inline comments explaining the purpose of complex operations, particularly around token validation and authentication checks.
+
+### 7. Optimization: The function in assignments.py that handles job assignments could be optimized by leveraging dictionary lookups instead of nested loops, which would improve its performance, especially with a larger dataset.
+
+### 8. File Structure: Consider restructuring the project to separate API logic, database models, and utility functions into different folders. This would improve maintainability as the project grows.
+
+### 9. Logging: Implement logging in critical areas, such as user authentication and job assignments. This will help in tracking issues in production without relying solely on debugging.
+
+### 10. Redundant Code: There are instances of redundant variable declarations in database.py. These can be consolidated or streamlined to reduce code clutter.
+
+### 11. Security Concerns: Ensure that sensitive data, such as user tokens, is masked or sanitized in log files to avoid potential security risks.
+
+### 12. Testing Utilities: Add utility functions for testing in test_utils.py to handle repetitive setup tasks in test scripts. This will make test scripts more readable and reduce setup redundancy.
+
+
