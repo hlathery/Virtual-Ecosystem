@@ -44,7 +44,7 @@ def get_village_overview():
     Returns a general overview of village characteristics and villagers
     """
     with db.engine.begin() as connection:
-        villager_count = connection.execute(sqlalchemy.text("SELECT COUNT(villagers.id) AS num_villagers FROM villagers")).scalar_one()
+        villager_count = connection.execute(sqlalchemy.text("SELECT COUNT(villagers.id) AS num_villagers FROM villagers")).scalar()
         buildings = connection.execute(sqlalchemy.text("SELECT name, quantity FROM buildings"))
 
     buildings_name = []
@@ -66,24 +66,25 @@ def catalog():
     """
     Gets the catalog of valid buildings available to build
     """
-    with db.engine.begin() as connection:
-        select_query =  """
+    
+    select_query =  """
                             SELECT buildings.name AS type,
                                 catalog.cost AS price
                             FROM buildings
                             JOIN catalog ON buildings.id = catalog.building_id
-                        """
+                       """
+    with db.engine.begin() as connection:
         buildings = connection.execute(sqlalchemy.text(select_query))
-        funds = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM storage WHERE resource_name = 'wood'")).scalar_one()
+        funds = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM storage WHERE resource_name = 'wood'")).scalar()
 
-        types = []
-        costs = []
-        for row in buildings:
-            if row.price < funds:
-                types.append(row.type)
-                costs.append(row.price)
+    types = []
+    costs = []
+    for row in buildings:
+        if row.price < funds:
+            types.append(row.type)
+            costs.append(row.price)
 
-        return {
+    return {
             "buildings": types,
             "costs": costs,
             "funds": funds
@@ -97,7 +98,9 @@ def create_villager(villagers: list[Villagers]):
     """
     Creates one or many villagers (id auto incrementing and job_id can start null)
     """
-
+    if len(villagers) == 0:
+        return {"No villagers created"}
+    
     update_list = list()
     for villager in villagers:
         if (villager.age < 0 or villager.age > 100 or
@@ -113,9 +116,10 @@ def create_villager(villagers: list[Villagers]):
                     """
 
     with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text(insert_query),update_list)
+        connection.execute(sqlalchemy.text(insert_query), update_list)
 
-    return {"Villager(s) successfully created"}
+    return f"{len(villagers)} villager(s) succesfully created"
+
 
 @router.delete("/villager")
 def remove_villager(amount: int):
@@ -123,17 +127,24 @@ def remove_villager(amount: int):
     Kills the oldest amount of villagers depending on amount passed in
     """
     with db.engine.begin() as connection:
+        villagers = connection.execute(sqlalchemy.text("SELECT COUNT(*) AS amount FROM villagers"))
+        vil = villagers.fetchone()
+
+        if amount > vil.amount:
+            return f"There are only {vil.amount} villager(s) able to be removed"
+         
         kill_villager_query =   """
                                     DELETE FROM villagers
                                     WHERE id IN (
                                         SELECT id FROM villagers
                                         ORDER BY age DESC
                                         LIMIT :num
-                                    )
+                                        ) 
                                 """
         connection.execute(sqlalchemy.text(kill_villager_query),{"num":amount})
 
-    return "OK"
+    # Make sure you can't take more than available
+    return f"{amount} villager(s) succesfully removed"
 
 
 @router.post("/build_building")
@@ -152,7 +163,7 @@ def build_structure(buildings: list[Building]):
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text("UPDATE buildings SET quantity = quantity + :amount WHERE name = :id"), update_list)
 
-    return "OK"
+    return "Structure Built"
 
 
 
