@@ -2,7 +2,7 @@ from fastapi import FastAPI, exceptions
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 from . import jobs
-from src.api import admin, village, eco
+from src.api import admin, village, eco,random_spawn
 import json
 import logging
 
@@ -22,6 +22,7 @@ app.include_router(admin.router)
 app.include_router(village.router)
 app.include_router(eco.router)
 app.include_router(jobs.router)
+app.include_router(random_spawn.router)
 
 @app.exception_handler(exceptions.RequestValidationError)
 @app.exception_handler(ValidationError)
