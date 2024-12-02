@@ -99,6 +99,7 @@ Endpoint has been changed.
 
 -- Added.
 
+
 # Amir Minabian
 
 ### 1. Naming Conventions: Consider renaming variables like id, name, and quantity to more descriptive alternatives where possible. For instance, village_id or resource_name to clarify the context in each module.
@@ -143,8 +144,10 @@ Endpoint has been changed.
 
 ### 11. Security Concerns: Ensure that sensitive data, such as user tokens, is masked or sanitized in log files to avoid potential security risks.
 
--- 
+-- I've gone through and checked for any leaked API keys, I've found one in Test_gen.py and masked it.
 
 ### 12. Testing Utilities: Add utility functions for testing in test_utils.py to handle repetitive setup tasks in test scripts. This will make test scripts more readable and reduce setup redundancy.
+
+-- test_utils.py has been removed.
 
 
