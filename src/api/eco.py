@@ -91,9 +91,6 @@ def get_eco_overview():
     
     return overview
 
-from sqlalchemy import text
-
-
 # COMPLEX ENDPOINT
 @router.post("/biomes/")
 def post_biome_counts(biomes: BiomeCounts):
