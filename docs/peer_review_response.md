@@ -103,25 +103,47 @@ Endpoint has been changed.
 
 ### 1. Naming Conventions: Consider renaming variables like id, name, and quantity to more descriptive alternatives where possible. For instance, village_id or resource_name to clarify the context in each module.
 
+-- I can see the want for this, but when joining tables or calling tables, it seems more obvious what column belongs to which table (i.e. villagers.id and buildings.id). The change feels a little redundant.
+
 ### 2. Code Modularization: Large functions such as those in assignments.py and eco.py can be broken down into smaller, modular functions. For instance, separating data validation and processing logic in assignments.py could improve readability and debugging.
+
+-- A lot of these files have been revised and changed, not too many of the functions are all that big, but mostly have been changed.
 
 ### 3. Repeated Code: There are repetitive API response structures, particularly in handling requests in main.py. Consider creating a utility function to handle common response formatting and error responses to make the code DRY (Don’t Repeat Yourself).
 
+-- This has been fixed.
+
 ### 4. Error Handling: Expand on error handling, especially in endpoints like village/inventory and village/catalog. Adding specific exceptions for different types of failures (e.g., ValueError for invalid inputs) could make debugging and user feedback clearer.
+
+-- This has been a common critiscm and has been fixed.
 
 ### 5. Documentation: Add more detailed docstrings for complex functions, particularly in eco.py. Explaining parameters, return values, and any expected exceptions would improve maintainability.
 
+-- Done, the endpoints are explained more clearly on their inputs and outputs.
+
 ### 6. Code Comments: Certain blocks in auth.py could benefit from inline comments explaining the purpose of complex operations, particularly around token validation and authentication checks.
+
+-- I added comments to most error handling to explain the reasoning behind it, most the code is not too complicated, but to code that was I added more comments.
 
 ### 7. Optimization: The function in assignments.py that handles job assignments could be optimized by leveraging dictionary lookups instead of nested loops, which would improve its performance, especially with a larger dataset.
 
+-- Assignments.py no longer exists, however, I found this particular endpoint, there is no longer a nested for loop; instead it's done in a single for loop, however the data set is not, and probably never will be, big enough to really need a dictionary.
+
 ### 8. File Structure: Consider restructuring the project to separate API logic, database models, and utility functions into different folders. This would improve maintainability as the project grows.
+
+-- We considered doing this, however, it feels easier to access and move through our files when our endpoints are all together in one API folder.
 
 ### 9. Logging: Implement logging in critical areas, such as user authentication and job assignments. This will help in tracking issues in production without relying solely on debugging.
 
+-- We added more user error handling to ensure only specific values get passed through.
+
 ### 10. Redundant Code: There are instances of redundant variable declarations in database.py. These can be consolidated or streamlined to reduce code clutter.
 
+-- database.py is all cleaned up.
+
 ### 11. Security Concerns: Ensure that sensitive data, such as user tokens, is masked or sanitized in log files to avoid potential security risks.
+
+-- 
 
 ### 12. Testing Utilities: Add utility functions for testing in test_utils.py to handle repetitive setup tasks in test scripts. This will make test scripts more readable and reduce setup redundancy.
 
