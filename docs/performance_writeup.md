@@ -11,21 +11,21 @@ Villagers are the only quantity that can be appended to, other tables are update
 
 # Performance Results of Hitting Endpoints:
 ### Admin
-- admin/reset runtime: 0:00:01.394086
+- admin/reset runtime: 1340.086 ms
 
 ### Village
- - village/ runtime: 0:00:00.144376
- - village/catalog runtime: 0:00:00.012040
- - PUT village/villager runtime: 0:00:01.349416 (Inserting 1000 villagers)
- - DELETE village/villager runtime: 0:00:00.479722 (Deleting 1000 villagers) 
- - village/villager_update runtime: 0:00:10.744642
- - POST village/building runtime: 0:00:00.007635
- - PUT village/inventory runtime: 0:00:00.020511 (Adding food)
- - village/village_inventory runtime: 0:00:00.011003
+ - village/ runtime: 144.376 ms
+ - village/catalog runtime: 12.040 ms
+ - PUT village/villager runtime: 1349.416 ms (Inserting 1000 villagers)
+ - DELETE village/villager runtime: 479.722 ms (Deleting 1000 villagers) 
+ - village/villager_update runtime: 10744.642 ms
+ - POST village/building runtime: 7.635 ms
+ - PUT village/inventory runtime: 20.511 ms (Adding food)
+ - village/village_inventory runtime: 11.003 ms
 
 ### Ecological
- - eco/ runtime: 0:00:00.102123
- - eco/biomes runtime: 0:00:00.052241
+ - eco/ runtime: 102.123 ms
+ - eco/biomes runtime: 52.241 ms
 
 Request for biomes:
 ```
@@ -37,19 +37,19 @@ Request for biomes:
 }
 ```
 
- - eco/plants runtime: 0:00:00.011714 (with 100 plants per biome w/ 4 biomes)
- - eco/entity runtime: 0:00:00.022300 (Inserting entity into biome)
- - eco/entity/nourishment runtime: 0:00:00.023006
- - eco/prey/biome_id runtime: 0:00:00.018261
- - eco/predator/biome_id runtime: 0:00:00.007993
- - eco/disaster TRUE runtime: 0:00:00.417198 (Killed 4 villagers with Plague)
- - eco/disaster FALSE runtime: 0:00:00
- - eco/disaster TRUE runtime: 0:00:00.294763 (Killed 3 villager with Rebellion)
+ - eco/plants runtime: 11.714 ms (with 100 plants per biome w/ 4 biomes)
+ - eco/entity runtime: 22.300 ms (Inserting entity into biome)
+ - eco/entity/nourishment runtime: 23.006 ms
+ - eco/prey/biome_id runtime: 18.261 ms
+ - eco/predator/biome_id runtime: 7.993 ms
+ - eco/disaster TRUE runtime: 417.198 ms (Killed 4 villagers with Plague)
+ - eco/disaster FALSE runtime: 0 ms
+ - eco/disaster TRUE runtime: 294.763 ms (Killed 3 villager with Rebellion)
 
 
 ### Jobs
- - jobs/ runtime: 0:00:00.503610
- - jobs/assignments runtime: 0:00:02.170144 (updating 90000 rows)
+ - jobs/ runtime: 503.610 ms
+ - jobs/assignments runtime: 2170.144 ms (updating 90000 rows)
 
 Request for Assignments:
 ```
@@ -62,9 +62,9 @@ Request for Assignments:
 ```
 
 ## Slowest Endpoints:
- - village/villager_update runtime: 0:00:10.744642
- - jobs/assignments runtime: 0:00:02.170144 (Updating 90000 rows)
- - PUT village/villager runtime: 0:00:01.349416 (Inserting 1000 villagers)
+ - village/villager_update runtime: 10744.642 ms
+ - jobs/assignments runtime: 2170.144 ms (Updating 90000 rows)
+ - PUT village/villager runtime: 1349.416 ms (Inserting 1000 villagers)
 
 # Performance Tuning
 ### village/villager_update
