@@ -200,35 +200,45 @@ def build_structure(buildings: list[Building]):
 @router.put("/fill_inventory")
 def adjust_storage(storages: list[BuildingStorage]):
     """
-    Adjusts storage amounts in buildings based off certain game logic (make quantity values + or -),
-    Ex: If getting food from farm you would make it 50, but if taking water to give to villagers make
-    it -25. Since SQL statement is doing quantity + :quantity 
+    Adjusts storage amounts in buildings based off certain game logic (make quantity values + or - as desired)
     """
+
     if len(storages) == 0:
-        return "Must provide resources to adjust!"
+        return {"error": "Must provide resources to adjust!"}
 
     with db.engine.begin() as connection:
-        counts = connection.execute(sqlalchemy.text("SELECT resource_name, COUNT(*) AS tot FROM storage GROUP BY resource_name"))
-
+        counts = connection.execute(sqlalchemy.text("SELECT resource_name, COUNT(*) AS tot FROM storage GROUP BY resource_name")).fetchall()
 
         update_list = list()
         for storage in storages:
             for count in counts:
                 if count.resource_name == storage.resource_name:
-                    update_list.append({"quantity":storage.amount,
-                                    "resource":storage.resource_name,
-                                    "num":count.tot})
+                    
+                    current_quantity = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM storage WHERE resource_name = :resource_name"),
+                        {"resource_name": storage.resource_name},
+                    ).scalar()
 
+                    adjustment = storage.amount / count.tot
+                    if current_quantity + adjustment < 0:
+                        return f"Error: This would make {storage.resource_name} quantity to go below 0."
+                            
+                    update_list.append({
+                        "quantity": storage.amount,
+                        "resource": storage.resource_name,
+                        "num": count.tot
+                    })
 
-        storage_update_query =  """
-                                UPDATE storage
-                                SET quantity = quantity + :quantity/:num
-                                WHERE resource_name = :resource
-                                """
+        
+        storage_update_query = """
+            UPDATE storage
+            SET quantity = quantity + :quantity/:num
+            WHERE resource_name = :resource
+                AND (quantity + :quantity/:num) >= 0
+        """
 
-        connection.execute(sqlalchemy.text(storage_update_query),update_list)
+        connection.execute(sqlalchemy.text(storage_update_query), update_list)
 
-    return {"Success"}
+    return "Storage updated successfully!"
 
 
 
