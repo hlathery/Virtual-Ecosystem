@@ -5,8 +5,6 @@ import sqlalchemy
 from sqlalchemy import update, text, bindparam
 from sqlalchemy.orm import session
 from src import database as db
-from enum import Enum
-from typing import Dict
 from fastapi import HTTPException, status
 import random
 import datetime
@@ -20,7 +18,7 @@ router = APIRouter(
 @router.post("/")
 def random_spawn(): 
     """
-    Randomly Spawns villagers and resources (in a ledgerized design)
+    Randomly Spawns villagers
     """
 
     # In format HH:MM:SS.mS
@@ -32,19 +30,20 @@ def random_spawn():
                     """
 
     with db.engine.begin() as connection:
-        villager_addition = []
-        for villager in range(90000):
-            job = random.randint(1,5) # Foreign Key relation to the buildings table
-            age = random.randint(0,100)
-            nourishment = 50
-            villager_addition.append({
-                "job_id": job,
-                "age": age,
-                "nourishment": nourishment
-            })
         
-        connection.execute(sqlalchemy.text(spawn_query),villager_addition)
-    
+        for i in range(5):
+            villager_addition = []
+            for j in range(200000):
+                job = random.randint(1,5) # Foreign Key relation to the buildings table
+                age = random.randint(0,100)
+                nourishment = random.randint(20,100)
+                villager_addition.append({
+                    "job_id": job,
+                    "age": age,
+                    "nourishment": nourishment
+                })
+            print("pass #" + j)
+            connection.execute(sqlalchemy.text(spawn_query),villager_addition)
     
     endtime =datetime.datetime.now()
     runtime = endtime - start_time
