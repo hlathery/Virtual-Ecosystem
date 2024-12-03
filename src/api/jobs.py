@@ -62,6 +62,7 @@ def assign_villager(job_list: list[Jobs]):
     Takes a number of unassigned villagers and gives them a job.
     """
     
+    sum = 0
     # checks for negative values
     for job in job_list:
         if job.villagers_assigned < 0: 
@@ -69,6 +70,7 @@ def assign_villager(job_list: list[Jobs]):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Invalid assignment request: Cannot assign negative number of villagers ({job.villagers_assigned}) to {job.job_name}"
             )
+        sum += job.villagers_assigned
     
     assignments = [
         {
@@ -76,7 +78,7 @@ def assign_villager(job_list: list[Jobs]):
             "assigned": job.villagers_assigned
         }
         for job in job_list
-        if job.villagers_assigned > 0
+        if job.villagers_assigned >= 0
     ]
 
     if not assignments:
@@ -95,14 +97,9 @@ def assign_villager(job_list: list[Jobs]):
             WHERE job_id = 0 
             LIMIT :assigned
         )
-        RETURNING id
     """
     
     with db.engine.begin() as connection:
-        result = connection.execute(
-            sqlalchemy.text(assign_query),
-            assignments
-        )
-        total_assigned = len(result.fetchall())
+        connection.execute(sqlalchemy.text(assign_query), assignments)
 
-    return {"villagers_assigned": total_assigned}
+    return {"villagers_assigned": sum}

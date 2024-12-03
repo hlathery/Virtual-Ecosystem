@@ -91,7 +91,7 @@ def catalog():
         }
 
 
-@router.put("/villager")
+@router.put("/villager/{amount}")
 def create_villager(amount: int):
     """
     Creates one or many villagers (id auto incrementing and job_id can start null).
@@ -118,7 +118,7 @@ def create_villager(amount: int):
     return f"{amount} villager(s) succesfully created"
 
 
-@router.delete("/villager")
+@router.delete("/villager/{amount}")
 def remove_villager(amount: int):
     """
     Kills the oldest villagers. Based on the amount, it will order that many villagers to be killed by age (highest to lowest)
@@ -168,7 +168,7 @@ def update_villager():
     return "Villagers consumed food and water"  # PLACEHOLDER
 
 
-@router.post("/build_building")
+@router.post("/building")
 def build_structure(buildings: list[Building]):
     """
     Takes in buildings user wants to build or remove.
@@ -197,7 +197,7 @@ def build_structure(buildings: list[Building]):
     return f"Structures built: {update_list}"
 
 
-@router.put("/fill_inventory")
+@router.put("/storage")
 def adjust_storage(storages: list[BuildingStorage]):
     """
     Adjusts storage amounts in buildings based off certain game logic (make quantity values + or - as desired)

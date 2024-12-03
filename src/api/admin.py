@@ -27,24 +27,25 @@ def reset():
 
                     INSERT INTO storage (resource_name, quantity, building_id) 
                     VALUES 
-                        :wood, 
-                        :food, 
-                        :water;
+                        ('wood', 50, 0), 
+                        ('food', 100, 0), 
+                        ('water', 100, 0);
                     
                     DELETE FROM villagers;
 
+                    INSERT INTO villagers (job_id, age, nourishment)
+                    VALUES
+                        (0, 18, 100),
+                        (0, 18, 100),
+                        (0, 18, 100),
+                        (0, 18, 100),
+                        (0, 18, 100);
+
+                    UPDATE buildings SET quantity = 0;
+
                     UPDATE buildings SET quantity = 1 WHERE id = 0 OR id = 1;
-
-                    UPDATE buildings SET quantity = 0 WHERE id != 0 OR id != 1
                 """
-        # ['resource_name', quantity, building_id] , 0 in this case points to starter town hall
-        default_wood = ['wood', 100, 0] 
-        default_food = ['food', 50, 0]
-        default_water = ['water', 50, 0]
 
-        connection.execute(sqlalchemy.text(query), {"wood": tuple(default_wood),
-                                                    "food": tuple(default_food),
-                                                    "water": tuple(default_water)})
+        connection.execute(sqlalchemy.text(query))
 
     return "OK"
-

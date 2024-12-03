@@ -41,8 +41,6 @@ class WorldDrawer:
         import main
 
     def draw(self):
-        for _ in range(0,5):
-            res = requests.put("http://127.0.0.1:3000/village/create_villager", headers=self.post_headers)
         self.ord = World.count_biomes(World,self.height_map)
         eco = requests.get("http://127.0.0.1:3000/eco/", headers=self.get_headers).json()
         update = []
@@ -100,13 +98,13 @@ class WorldDrawer:
             self.draw_tiles(self.height_map)
             pygame.display.flip()
             self.cont()
-            self.ord = World.count_biomes(World,self.height_map)
             c, m = self.wait_key()
 
     def wait_key(self, click=False, menu=True):
             event = pygame.event.wait()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE or event.key == pygame.K_q:
+                    res = requests.post("http://127.0.0.1:3000/admin/reset", headers=self.post_headers)
                     pygame.quit()
                     quit()
                 if event.key == pygame.K_SPACE:
@@ -262,7 +260,7 @@ class WorldDrawer:
             click, menu = self.wait_key()
             if menu == False:
                 res = requests.put("http://127.0.0.1:3000/jobs/assignments", json=job_list, headers=self.post_headers)
-                res = requests.post("http://127.0.0.1:3000/village/build_building", json=build, headers=self.post_headers)
+                res = requests.post("http://127.0.0.1:3000/village/building", json=build, headers=self.post_headers)
                 num = 0
                 sum = 0
                 for elem in build:
@@ -270,7 +268,7 @@ class WorldDrawer:
                     for i in range(0,len(catalog_list['buildings'])):
                         if elem['building_name'] == catalog_list['buildings'][i]:
                             sum += num*catalog_list['costs'][i]
-                res = requests.put("http://127.0.0.1:3000/village/fill_inventory",
+                res = requests.put("http://127.0.0.1:3000/village/storage",
                            json=[{'resource_name':'wood', 'amount':(-1*sum)}],
                            headers=self.post_headers)
 
@@ -337,20 +335,19 @@ class WorldDrawer:
                         break
         res = requests.delete("http://127.0.0.1:3000/eco/clean/", headers=self.get_headers)
         pop = requests.get("http://127.0.0.1:3000/village/", headers=self.get_headers).json()
-        res = requests.put("http://127.0.0.1:3000/village/fill_inventory",
+        res = requests.put("http://127.0.0.1:3000/village/storage",
                            json=[{'resource_name':'water', 'amount':(-1*pop['num_villager']*5)+(forager*5)},
                                  {'resource_name':'food', 'amount':(-1*pop['num_villager']*5)+(hunter*5)},
                                  {'resource_name':'wood', 'amount':(lumber*5)}],
                            headers=self.post_headers)
         res = requests.post("http://127.0.0.1:3000/village/villager_update", headers=self.post_headers)
-        res = requests.delete("http://127.0.0.1:3000/village/delete_villager", headers=self.get_headers)
+        res = requests.delete(f"http://127.0.0.1:3000/village/villager/{round(pop['num_villager']/5)}", headers=self.get_headers)
         buildings = requests.get("http://127.0.0.1:3000/village/", headers=self.get_headers).json()
         for i in range(0,len(buildings['buildings'])):
             if buildings['buildings'][i] == 'Villager Hut':
                 result = (buildings['num_buildings'][i]*5)-pop['num_villager']
                 if result > 0:
-                    for _ in range(0,result):
-                        res = requests.put("http://127.0.0.1:3000/village/create_villager", headers=self.post_headers)
+                    res = requests.put(f"http://127.0.0.1:3000/village/villager/{result}", headers=self.post_headers)
                 break
         res = requests.post("http://127.0.0.1:3000/eco/disaster", headers=self.post_headers)
 
