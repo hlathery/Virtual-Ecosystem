@@ -96,65 +96,110 @@ def catalog():
 @router.put("/villager")
 def create_villager(villagers: list[Villagers]):
     """
-    Creates one or many villagers (id auto incrementing and job_id can start null)
+    Creates one or many villagers (id auto incrementing and job_id can start null).
     """
 
     update_list = list()
-    for villager in villagers:
-        if (villager.age < 0 or villager.age > 100 or
-            villager.nourishment < 0 or villager.nourishment > 100):
-              raise HTTPException(status_code=400, detail="Age and nourishment must be between 0-100 inclusive, please retry")
-        # Nothing before or after exception will be added to DB if one case fails
-        update_list.append({"age":villager.age,
-                            "nourishment":villager.nourishment})
+    for villager in villagers: # handles errors for ages >=0
+        if villager.age <= 0:
+            raise HTTPException(
+                status_code=400, 
+                detail="Age must be greater than 0"
+            )
+        if villager.nourishment < 0 or villager.nourishment > 100: # handles nourishment going under 0 or over 100
+            raise HTTPException(
+                status_code=400,
+                detail="Nourishment must be between 0-100 inclusive"
+            )
+        
+        update_list.append({
+            "age": villager.age,
+            "nourishment": villager.nourishment
+        })
 
-    insert_query =  """
-                        INSERT INTO villagers (age, nourishment)
-                        VALUES (:age, :nourishment)
-                    """
+    insert_query = """
+        INSERT INTO villagers (age, nourishment)
+        VALUES (:age, :nourishment)
+    """
 
     with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text(insert_query),update_list)
+        connection.execute(sqlalchemy.text(insert_query), update_list)
 
-    return {"Villager(s) successfully created"}
+    return {"message": "Villager(s) successfully created"}
 
 @router.delete("/villager")
 def remove_villager(amount: int):
     """
-    Kills the oldest amount of villagers depending on amount passed in
+    Kills the oldest villagers. Based on the amount, it will order that many villagers to be killed by age (highest to lowest)
+    Returns the id and age of each villager killed.
     """
     with db.engine.begin() as connection:
-        kill_villager_query =   """
-                                    DELETE FROM villagers
-                                    WHERE id IN (
-                                        SELECT id FROM villagers
-                                        ORDER BY age DESC
-                                        LIMIT :num
-                                    )
-                                """
-        connection.execute(sqlalchemy.text(kill_villager_query),{"num":amount})
+        kill_villager_query = """
+            WITH killed_villagers AS (
+                DELETE FROM villagers
+                WHERE id IN (
+                    SELECT id FROM villagers
+                    ORDER BY age DESC
+                    LIMIT :num
+                )
+                RETURNING id, age
+            )
+            SELECT id, age 
+            FROM killed_villagers;
+        """
+        result = connection.execute(sqlalchemy.text(kill_villager_query), {"num": amount})
+        killed_villagers = [{"id": row.id, "age": row.age} for row in result]
 
-    return "OK"
+    return {
+        "message": f"Killed {len(killed_villagers)} villager(s)",
+        "killed_villagers": killed_villagers
+    }
 
 
 @router.post("/build_building")
 def build_structure(buildings: list[Building]):
     """
-    Takes in buildings user wants to build
+    Takes in buildings user wants to build or remove.
+    Negative values to remove building, positive to add.
+    Cannot go below 0.
     """
 
-    update_list = []
-    for building in buildings:
-        update_list.append({
+    update_list = [
+        {
             "amount": building.quantity,
             "id": building.building_name
-        })
+        }
+        for building in buildings
+    ]
 
     with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text("UPDATE buildings SET quantity = quantity + :amount WHERE name = :id"), update_list)
+        check_query = """
+            SELECT name, quantity
+            FROM buildings 
+            WHERE name = ANY(:building_names)
+        """
+        
+        building_names = [b["id"] for b in update_list]
+        current_quantities = connection.execute(
+            sqlalchemy.text(check_query),
+            {"building_names": building_names}
+        ).fetchall()
 
-    return "Structure Built"
+        quantities_dict = {row.name: row.quantity for row in current_quantities}
+        for update in update_list:
+            current = quantities_dict.get(update["id"], 0)
+            if current + update["amount"] < 0:
+                raise HTTPException( # error handling for nourishment being reduced below 0
+                    status_code=400,
+                    detail=f"Cannot reduce {update['id']} below 0 (current: {current}, change: {update['amount']})"
+                )
 
+        connection.execute(
+            sqlalchemy.text("UPDATE buildings SET quantity = quantity + :amount WHERE name = :id"), 
+            update_list
+        )
+
+    return {"message": "Structure(s) updated successfully"}
 
 
 
@@ -170,15 +215,15 @@ def adjust_storage(storages: list[BuildingStorage]):
         counts = connection.execute(sqlalchemy.text("SELECT resource_name, COUNT(*) AS tot FROM storage GROUP BY resource_name"))
 
 
-    update_list = list()
-    for storage in storages:
-        for count in counts:
-            if count.resource_name == storage.resource_name:
-                update_list.append({"quantity":storage.amount,
+        update_list = list()
+        for storage in storages:
+            for count in counts:
+                if count.resource_name == storage.resource_name:
+                    update_list.append({"quantity":storage.amount,
                                     "resource":storage.resource_name,
                                     "num":count.tot})
 
-    with db.engine.begin() as connection:
+
         storage_update_query =  """
                                 UPDATE storage
                                 SET quantity = quantity + :quantity/:num
