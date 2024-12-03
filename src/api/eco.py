@@ -283,6 +283,11 @@ def update_nourishment(entity_updates: list[EntityUpdate]):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Negative ID not allowed: {update.id}"
             )
+        elif update.nourishment < 0:
+            raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Nourishment must be between 0 and 100 inclusive: {update.id}"
+                )
     
     update_list = [
         {
@@ -299,16 +304,22 @@ def update_nourishment(entity_updates: list[EntityUpdate]):
     """
     
     with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text(update_query), update_list)
+        result = connection.execute(sqlalchemy.text(update_query), update_list)
 
     endtime = datetime.datetime.now()
     runtime = endtime - start_time
     print("eco/entity/nourishment runtime: " + str(runtime)) 
-    
-    return {
-        "message": "Nourishment updated successfully",
-        "entities_updated": len(update_list)
-    }
+
+    if result.rowcount == 0:
+        return {
+        "message": "Provided id does not exist",
+        "entities_updated": result.rowcount
+        }
+    elif result.rowcount > 0:
+        return {
+            "message": "Nourishment updated successfully",
+            "entities_updated": len(update_list)
+        }
 
 
 @router.get("/prey/{biome_id}", status_code=status.HTTP_200_OK, response_description="Success")

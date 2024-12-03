@@ -53,5 +53,5 @@ def reset():
     runtime = endtime - start_time
     print("admin/reset runtime: " + str(runtime))
 
-    return "OK"
+    return "Reset Complete"
 
