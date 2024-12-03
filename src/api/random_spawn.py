@@ -42,10 +42,10 @@ def random_spawn():
                     "age": age,
                     "nourishment": nourishment
                 })
-            print("pass #" + j)
+            print("pass #" + str(i))
             connection.execute(sqlalchemy.text(spawn_query),villager_addition)
     
-    endtime =datetime.datetime.now()
+    endtime = datetime.datetime.now()
     runtime = endtime - start_time
     print("random_spawn runtime: " + str(runtime))
 
