@@ -94,7 +94,7 @@ def catalog():
 @router.put("/villager")
 def create_villager(amount: int):
     """
-    Creates one or many villagers (id auto incrementing and job_id can start null)
+    Creates one or many villagers (id auto incrementing and job_id can start null).
     """
     if amount == 0:
         return "No villagers created"
@@ -107,10 +107,10 @@ def create_villager(amount: int):
         update_list.append({"age": 18,
                             "nourishment":100})
 
-    insert_query =  """
-                        INSERT INTO villagers (age, nourishment)
-                        VALUES (:age, :nourishment)
-                    """
+    insert_query = """
+        INSERT INTO villagers (age, nourishment)
+        VALUES (:age, :nourishment)
+    """
 
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text(insert_query), update_list)
@@ -121,7 +121,8 @@ def create_villager(amount: int):
 @router.delete("/villager")
 def remove_villager(amount: int):
     """
-    Kills the oldest amount of villagers depending on amount passed in
+    Kills the oldest villagers. Based on the amount, it will order that many villagers to be killed by age (highest to lowest)
+    Returns the id and age of each villager killed.
     """
     with db.engine.begin() as connection:
         villagers = connection.execute(sqlalchemy.text("SELECT COUNT(*) AS amount FROM villagers"))
@@ -170,7 +171,9 @@ def update_villager():
 @router.post("/build_building")
 def build_structure(buildings: list[Building]):
     """
-    Takes in buildings user wants to build
+    Takes in buildings user wants to build or remove.
+    Negative values to remove building, positive to add.
+    Cannot go below 0.
     """
     if len(buildings) == 0:
         return "No structures built"
@@ -208,15 +211,15 @@ def adjust_storage(storages: list[BuildingStorage]):
         counts = connection.execute(sqlalchemy.text("SELECT resource_name, COUNT(*) AS tot FROM storage GROUP BY resource_name"))
 
 
-    update_list = list()
-    for storage in storages:
-        for count in counts:
-            if count.resource_name == storage.resource_name:
-                update_list.append({"quantity":storage.amount,
+        update_list = list()
+        for storage in storages:
+            for count in counts:
+                if count.resource_name == storage.resource_name:
+                    update_list.append({"quantity":storage.amount,
                                     "resource":storage.resource_name,
                                     "num":count.tot})
 
-    with db.engine.begin() as connection:
+
         storage_update_query =  """
                                 UPDATE storage
                                 SET quantity = quantity + :quantity/:num

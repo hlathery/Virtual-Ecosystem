@@ -1,7 +1,9 @@
 from World import World
 from World_Drawer import *
 from Util import *
+from dotenv import load_dotenv
 
+load_dotenv()
 
 def test_generate_world(weights, random_seed):
     world = World(WORLD_X, WORLD_Y, random_seed)
@@ -12,10 +14,21 @@ def test_generate_world(weights, random_seed):
     print("Biome counts:", biome_counts)
     
     try:
+         # Get token from .env file
+        access_token = os.getenv('API_KEY')
+        
         headers = {
             "accept": "application/json",
             "Content-Type": "application/json",
-            "access_token": "hlath"
+            "access_token": access_token  # Using token from .env
+        }
+        
+        # Transform the counts to match expected format
+        formatted_counts = {
+            "ocean": biome_counts.get('Ocean', 0),
+            "forest": biome_counts.get('Forest', 0),
+            "grassland": biome_counts.get('Grassland', 0),
+            "beach": biome_counts.get('Beach', 0)
         }
         
         url = "http://127.0.0.1:3000/eco/biomes/"
@@ -23,7 +36,7 @@ def test_generate_world(weights, random_seed):
         
         response = requests.post(
             url,
-            json=biome_counts,
+            json=formatted_counts,  # Use formatted counts instead of original
             headers=headers
         )
         print(f"Response status: {response.status_code}")

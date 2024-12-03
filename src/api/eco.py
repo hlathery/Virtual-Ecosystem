@@ -102,7 +102,7 @@ def post_biome_counts(biomes: BiomeCounts):
     Creates new biome entries based on the counts.
     """
 
-    try:
+    try: # trying to connect and retrieve the data from flood fill
         biomes_dict = biomes.dict()
         print("Received biomes:", biomes_dict)
 
@@ -131,31 +131,32 @@ def post_biome_counts(biomes: BiomeCounts):
         )
     
 
-@router.get("/plants/{biome_id}", status_code = status.HTTP_200_OK, response_description="Success")
-def plants_overview(biome_id: int):
-    """
-    Returns the total nourishment of plants in the entire ecosystem
-    """
-    
-    plants_query =  """
-                        SELECT id,
-                            entity_type AS type,
-                            nourishment
-                        FROM entities
-                        WHERE entity_type = 'plants'
-                            AND biome_id = :biome_id
-                    """
-    
-    with db.engine.begin() as connection:
-        plants_table = connection.execute(sqlalchemy.text(plants_query), {'biome_id':biome_id}).fetchone()
-        id = plants_table.id
-        entity_type = plants_table.type
-        total = plants_table.nourishment
-
-    return {"id": id,
-            "entity_type": entity_type,
-            "nourishment": total}
-    
+@router.get("/plants/", status_code=status.HTTP_200_OK, response_description="Success")
+def plants_overview():
+   """
+   Returns the total nourishment of plants in the entire ecosystem.
+   """
+   plants_query = """
+       SELECT entity_type AS type, 
+           SUM(nourishment) AS nourishment
+       FROM entities
+       WHERE entity_type = 'plants'
+       GROUP BY entity_type
+   """
+   
+   with db.engine.begin() as connection:
+       plants_table = connection.execute(sqlalchemy.text(plants_query)).fetchone()
+       
+       if not plants_table:
+           return {"message": "No plants exist in the ecosystem"}
+           
+       entity_type = plants_table.type
+       total = plants_table.nourishment
+       
+   return {
+       "entity_type": entity_type,
+       "nourishment": total
+   }
 
     
 @router.post("/entity", status_code=status.HTTP_201_CREATED, response_description="Success Creation")
@@ -163,16 +164,15 @@ def spawn_entity(entity_to_spawn: list[Entity]):
     """
     Takes in a list of entities to be spawned in the requested biome.
     Will only create new entities if they don't already exist in the specified biome.
+    Returns early if no entities are provided.
     """
     
-
     if not entity_to_spawn:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot spawn entities: Empty list provided"
-        )
+        return {
+            "message": "No entities provided to spawn",
+            "entities_created": 0
+        }
     
-
     biome_ids = {entity.biome_id for entity in entity_to_spawn}
     
     with db.engine.begin() as connection:
@@ -187,13 +187,12 @@ def spawn_entity(entity_to_spawn: list[Entity]):
         existing_biome_ids = {row.id for row in existing_biomes}
         missing_biomes = biome_ids - existing_biome_ids
         
-        if missing_biomes:
+        if missing_biomes: # if that biome doesnt exist
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Biomes not found: {', '.join(str(id) for id in missing_biomes)}"
             )
         
-
         check_query = """
             SELECT entity_type, biome_id 
             FROM entities 
@@ -210,14 +209,13 @@ def spawn_entity(entity_to_spawn: list[Entity]):
             {"entity_biome_pairs": entity_biome_pairs}
         ).fetchall()
 
-        if existing:
+        if existing: # checking to see if that biome exists
             conflicts = [f"{row.entity_type} in biome {row.biome_id}" for row in existing]
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail=f"Cannot spawn entities: {', '.join(conflicts)} already exist"
             )
         
-
         insert_query = """
             INSERT INTO entities (entity_type, biome_id, nourishment)
             VALUES (:entity_type, :biome_id, :nourishment)
@@ -234,20 +232,31 @@ def spawn_entity(entity_to_spawn: list[Entity]):
         
         connection.execute(sqlalchemy.text(insert_query), entity_list)
 
-    return {"message": "Entities successfully spawned"}
+    return {
+        "message": "Entities successfully spawned",
+        "entities_created": len(entity_list)
+    }
     
 
 @router.put("/entity/nourishment", response_description="Nourishment Updated")
 def update_nourishment(entity_updates: list[EntityUpdate]):
     """
     Updates nourishment values for specific entities by their IDs.
+    Ensures no negative IDs are allowed.
     """
     
-    if not entity_updates:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No updates provided"
-        )
+    if not entity_updates: 
+        return {
+            "message": "No updates provided",
+            "entities_updated": 0
+        }
+    
+    for update in entity_updates: # used for error handling if the id goes negative
+        if update.id < 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Negative ID not allowed: {update.id}"
+            )
     
     update_list = [
         {
@@ -266,124 +275,105 @@ def update_nourishment(entity_updates: list[EntityUpdate]):
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text(update_query), update_list)
     
-    return {"message": "Nourishment updated successfully"}
+    return {
+        "message": "Nourishment updated successfully",
+        "entities_updated": len(update_list)
+    }
 
 
-@router.get("/prey/{biome_id}", status_code = status.HTTP_200_OK, response_description="Success")
+@router.get("/prey/{biome_id}", status_code=status.HTTP_200_OK, response_description="Success")
 def biome_prey(biome_id: int):
     """
-    Returns the nourishment of prey in the requested biome 
+    Returns the nourishment of prey in the requested biome.
     """
     with db.engine.begin() as connection:
+        biome_check_query = """
+            SELECT id FROM biomes WHERE id = :biome_id
+        """
+        biome = connection.execute(
+            sqlalchemy.text(biome_check_query), 
+            {"biome_id": biome_id}
+        ).fetchone()
+        
+        if not biome: # if the biome doesnt exist
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Biome with id {biome_id} not found"
+            )
         
         prey_query = """
-                        SELECT id,
-                            entity_type AS type,
-                            nourishment
-                        FROM entities
-                        WHERE entity_type = 'prey'
-                            AND biome_id = :biome_id
-                     """
-        prey = connection.execute(sqlalchemy.text(prey_query), {"biome_id":biome_id}).fetchone()
+            SELECT entity_type AS type, 
+                SUM(nourishment) AS nourishment
+            FROM entities
+            WHERE entity_type = 'prey'
+                AND biome_id = :biome_id
+            GROUP BY entity_type
+        """
+        prey = connection.execute(
+            sqlalchemy.text(prey_query), 
+            {"biome_id": biome_id}
+        ).fetchone()
+        
+        if not prey:
+            return {
+                "entity_type": "prey",
+                "nourishment": 0
+            }
 
-    id = prey.id
-    entity_type = prey.type
-    amount = prey.nourishment
     return {
-            "id": id,
-            "entity_type": entity_type,
-            "nourishment": amount
-        }
+        "entity_type": prey.type,
+        "nourishment": prey.nourishment
+    }
 
 
-@router.get("/predator/{biome_id}", status_code = status.HTTP_200_OK, response_description="Success")
+@router.get("/predator/{biome_id}", status_code=status.HTTP_200_OK, response_description="Success")
 def biome_predator(biome_id: int):
-    """
-    Returns a list of predator and their nourishment in the requested biome
-    """
-    with db.engine.begin() as connection:
-        predator_query = """
-                        SELECT id,
-                            entity_type AS type,
-                            nourishment
-                        FROM entities
-                        WHERE entity_type = 'predators'
-                            AND biome_id = :biome_id
-                     """
-        predator = connection.execute(sqlalchemy.text(predator_query), {"biome_id":biome_id}).fetchone()
+   """
+   Returns a list of predator and their nourishment in the requested biome.
+   """
+   with db.engine.begin() as connection:
+       biome_check_query = """
+           SELECT id FROM biomes WHERE id = :biome_id
+       """
+       biome = connection.execute(
+           sqlalchemy.text(biome_check_query), 
+           {"biome_id": biome_id}
+       ).fetchone()
+       
+       if not biome: # if the biome doesnt exist
+           raise HTTPException(
+               status_code=status.HTTP_404_NOT_FOUND,
+               detail=f"Biome with id {biome_id} not found"
+           )
+       
+       predator_query = """
+           SELECT entity_type AS type, 
+               SUM(nourishment) AS nourishment
+           FROM entities
+           WHERE entity_type = 'predators'
+               AND biome_id = :biome_id
+           GROUP BY entity_type
+       """
+       predator = connection.execute(
+           sqlalchemy.text(predator_query), 
+           {"biome_id": biome_id}
+       ).fetchone()
+       
+       if not predator:
+           return {
+               "entity_type": "predators", 
+               "nourishment": 0
+           }
 
-    id = predator.id
-    entity_type = predator.type
-    nourish_amount = predator.nourishment
-    return {
-            "id": id,
-            "entity_type": entity_type,
-            "nourishment": nourish_amount
-        }
+   return {
+       "entity_type": predator.type,
+       "nourishment": predator.nourishment
+   }
 
 
-@router.get("/water/{biome_id}", status_code = status.HTTP_200_OK, response_description="Success")
-def biome_water(biome_id: int):
-    """
-    Returns the water nourishment of the given biome
-    """
-    with db.engine.begin() as connection:
-        water_query = """
-                        SELECT id,
-                            entity_type AS type,
-                            nourishment
-                        FROM entities
-                        WHERE entity_type = 'water'
-                            AND biome_id = :biome_id
-                     """
-        water = connection.execute(sqlalchemy.text(water_query), {"biome_id":biome_id}).fetchone()
 
-    id = water.id
-    entity_type = water.type
-    nourish_amount = water.nourishment
-    return {
-            "id": id,
-            "entity_type": entity_type,
-            "nourishment": nourish_amount
-        }
 
-@router.get("/trees/{biome_id}", status_code = status.HTTP_200_OK, response_description="Success")
-def biome_trees(biome_id: int):
-    """
-    Returns the tree nourishment of the given biome
-    """
-    with db.engine.begin() as connection:
-        water_query = """
-                        SELECT id,
-                            entity_type AS type,
-                            nourishment
-                        FROM entities
-                        WHERE entity_type = 'trees'
-                            AND biome_id = :biome_id
-                     """
-        trees = connection.execute(sqlalchemy.text(water_query), {"biome_id":biome_id}).fetchone()
 
-    id = trees.id
-    entity_type = trees.type
-    nourish_amount = trees.nourishment
-    return {
-            "id": id,
-            "entity_type": entity_type,
-            "nourishment": nourish_amount
-        }
-
-@router.delete("/clean/", status_code = status.HTTP_200_OK, response_description="Success")
-def clean_entities():
-    """
-    Deletes biomes that have zero nourishment or below
-    """
-    with db.engine.begin() as connection:
-        clean_query = """
-                        DELETE
-                        FROM entities
-                        WHERE nourishment <= 0
-                     """
-        connection.execute(sqlalchemy.text(clean_query))
 
 # global variable for disasters
 disaster_counter = 0
@@ -405,7 +395,7 @@ def check_disaster():
         if random.random() < base_probability:
             disaster_counter = 0
             
-            disaster_type = random.choice([
+            disaster_type = random.choice([ # creating the disasters
                 DisasterType.FLOOD,
                 DisasterType.PLAGUE,
                 DisasterType.FAMINE,
@@ -417,6 +407,7 @@ def check_disaster():
                 # 0-5 villagers may die
                 affected_count = random.randint(0, 5)
                 
+                # choosing a disaster
                 if disaster_type in [DisasterType.FLOOD, DisasterType.PLAGUE, DisasterType.STORM, DisasterType.REBELLION]:
                     damage_query = """
                         WITH random_villagers AS (
@@ -439,7 +430,7 @@ def check_disaster():
                     )
                     deleted = len(result.fetchall())
                 
-                elif disaster_type == DisasterType.FAMINE:
+                elif disaster_type == DisasterType.FAMINE: # this disaster destroys plants
                     plants_prey_dmg = """
                         UPDATE entities
                         SET nourishment = nourishment * 0.7

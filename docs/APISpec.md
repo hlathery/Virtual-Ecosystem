@@ -121,45 +121,8 @@ Gets inventory across all buildings
 
 All API calls for the ecosystem.
 
-### 2.1. Ecosystem Overview - `/eco/` (POST)
 
-Returns all biomes with their respective entities and entity nourishment
-
-**Response**
-
-```json
-[
-    {
-        "biome_id": int,
-        "biome_name": string,
-        "entities": [{"name": string, "nourishment": int}]
-    }
-]
-
-```
-(Complex)
-### 2.2. Posts Biomes `/eco/biomes/`
-A flood fill search algorithm is ran when the map is created. The results are sent to this endpoint.
-
-**Request**
-```json
-{
-  "ocean": int,
-  "forest": int,
-  "grassland": int,
-  "beach": int
-}
-```
-
-**Response**
-
-```
-{
-  "message": "Biome counts recorded successfully"
-}
-```
-
-### 2.3. View plants - `/eco/plants/` (GET)  
+### 2.1. View plants - `/eco/plants/` (GET)  
 
 Grabs the total sum nourishment of plants of the entire ecosystem
 
@@ -175,7 +138,7 @@ Grabs the total sum nourishment of plants of the entire ecosystem
 ``` 
  
 
-### 2.4. Spawn entity - `/eco/entity` (POST)
+### 2.2. Spawn entity - `/eco/entity` (POST)
 Spawns entities to a specific biome. User controls plants, predators, prey, and trees to spawn.
 
 **Request:** 
@@ -198,29 +161,7 @@ Spawns entities to a specific biome. User controls plants, predators, prey, and 
 }
 ``` 
 
-### 2.5 Updates Nourishment - `/entity/nourishment` (PUT)
-Updates nourishment given the entity id
-
-**Request**
-
-```json
-[
-  {
-    "id": int,
-    "nourishment": int
-  }
-]
-``` 
-
-**Response:** 
-
-```json
-{
-  "message": "Nourishment updated successfully"
-}
-``` 
-
-### 2.5. View prey in biome -`/eco/prey/{biome_id}` (GET)
+### 2.3. View prey in biome -`/eco/prey/{biome_id}` (GET)
 Grabbing nourishment of prey given a specific biome
 
 **Response:** 
@@ -234,7 +175,7 @@ Grabbing nourishment of prey given a specific biome
 ]
 ``` 
 
-### 2.6. View predators - `/eco/predator/{biome_id}` (GET)
+### 2.4. View predators - `/eco/predator/{biome_id}` (GET)
 Grabbing nourishment of predators given a specific biome 
 
 **Response:** 
@@ -244,34 +185,6 @@ Grabbing nourishment of predators given a specific biome
     { 
         "entity_type": "string",
         "nourishment": "int" 
-    }
-] 
-```
-
-(Complex)
-### 2.7 Natural Disasters - `/eco/disaster/` (POST)
-Every time this endpoint is called (in-game it is called every time a player progresses) the chances for a natural disaster increase by 2%.
-When a disaster is called, it can affected the nourishment of plants, and can also kill up to 5 villagers
-
-**Response:** (if no disaster has occured)
-
-```json
-[
-    { 
-        "message": "No disaster occurred",
-        "current_probability": float,
-        "days_without_disaster": int
-    }
-] 
-```
-
-**Response:** (if a disaster has occured)
-
-```json
-[
-    {
-      "message": string,
-      "Villagers Killed": int
     }
 ] 
 ```
