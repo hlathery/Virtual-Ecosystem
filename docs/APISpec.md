@@ -17,7 +17,7 @@ Returns an overview of the village
 ```
 
 ### 1.2. Create villager - `/villager` (POST)
-Creates a new villager, unassigned 
+Creates a new villager, unassigned, with nourishment (0-100)
 
 **Request:** 
 ```json
@@ -124,7 +124,7 @@ All API calls for the ecosystem.
 
 ### 2.1. View plants - `/eco/plants/` (GET)  
 
-Grabs the total sum nourishment of plants of the entire ecosystem
+Grabs the total sum nourishment (0-100) of plants of the entire ecosystem
 
 **Response:** 
 
@@ -139,7 +139,7 @@ Grabs the total sum nourishment of plants of the entire ecosystem
  
 
 ### 2.2. Spawn entity - `/eco/entity` (POST)
-Spawns entities to a specific biome. User controls plants, predators, prey, and trees to spawn.
+Spawns entities with their nourishment (0-100) to a specific biome. User controls plants, predators, prey, and trees to spawn.
 
 **Request:** 
 
@@ -162,7 +162,7 @@ Spawns entities to a specific biome. User controls plants, predators, prey, and 
 ``` 
 
 ### 2.3. View prey in biome -`/eco/prey/{biome_id}` (GET)
-Grabbing nourishment of prey given a specific biome
+Grabbing nourishment (0-100) of prey given a specific biome
 
 **Response:** 
 
@@ -176,7 +176,7 @@ Grabbing nourishment of prey given a specific biome
 ``` 
 
 ### 2.4. View predators - `/eco/predator/{biome_id}` (GET)
-Grabbing nourishment of predators given a specific biome 
+Grabbing nourishment (0-100) of predators given a specific biome 
 
 **Response:** 
 

@@ -1,4 +1,6 @@
-# Dionne Gregorio.
+# Code Review Fixes
+
+## Dionne Gregorio.
 
 ### 1. In village.py in line 33 you could just do a .scalar() instead of a scalar_one(). a .scalar() will return none if no results instead of raising an exception
 
@@ -49,7 +51,7 @@ Endpoint has been changed.
 -- Loops have been pulled out of connection calls across all endpoints.
 
 
-# Cory Cowden
+## Cory Cowden
 
 ### 1. “Environmental” spelled wrong on readme.md
 
@@ -100,7 +102,7 @@ Endpoint has been changed.
 -- Added.
 
 
-# Amir Minabian
+## Amir Minabian
 
 ### 1. Naming Conventions: Consider renaming variables like id, name, and quantity to more descriptive alternatives where possible. For instance, village_id or resource_name to clarify the context in each module.
 
@@ -150,7 +152,7 @@ Endpoint has been changed.
 
 -- test_utils.py has been removed.
 
-# Katie Slobodsky
+## Katie Slobodsky
 
 ### 1. In post_biome_counts in eco.py, parameterize the SQL statement instead of using an f string to avoid SQL injection
 
@@ -200,7 +202,7 @@ Endpoint has been changed.
 
 -- Corrected.
 
-# Timothy Matthies
+## Timothy Matthies
 
 ### 1 .You can make prey_overview more readable when setting entity_type and total by using prey_table.entity_type and prey_table.Total, respectively.
 
@@ -249,3 +251,239 @@ Endpoint has been changed.
 ### 12. For the code in assign_villager, it looks like a different style of multi-line input to sqlalchemy is being used. I think that the other style used, where a single text is created and multiple dictionaries are passed, looks like it would work better. I'll be implementing it into my own code so that loops are not continuously making database calls.
 
 -- the assign_villager endpoint has been changed (most of the endpoints have) and now have the same style.
+
+# Schema/API Design Fixes
+
+## Timothy Matthies
+
+### I'd like to keep the timestamps in the tables, and also start aiming for legerization. Makes it so much easier to debug and test your database.
+
+-- This is a good idea to implement some sort of ledgerization for the sake of simplicity and debugging but that would require a significant rehaul of the database and would take too much time to change everything given the closeness to the presentation and due dates.
+
+### In your code you make reference to the fact that there are three specific biomes, but I do not see those being inserted in the schema, so I'm not sure how those are supposed to be used and kept track of.
+
+-- The biomes are added to the database tables when flood fill is ran
+
+### Got an error when trying out GET /info/current_time. GET methods should not have a body passed with them.
+
+-- We have since removed this function so this is no longer an issue
+
+### Odd return objects on GET /village/ and GET /village/catalog. I'd guess it works, but I'd like to see buildings and num/cost of paired up and easily readable.
+
+-- Both num_buildings and cost are paired in their respective arrays and are displayed in a readable way to the user in the game
+
+### A lot of API calls are redundantly named. I.e.: PUT /eco/spawn_prey or GET /assignments/get_job_list. The spawn/put and get are already known because of what HTTP method they are, there's not much of a need to include it in the name. I'd recommend renaming them to something like PUT /eco/prey and GET/assignments/jobs so that it's easier to tell what resource they operate on, and makes it feel less cluttered when view all of the API names. I also learned that this is a standard practice in industry from my CSC 307 class.
+
+-- We have since fixed this issue
+
+### Maybe change POST /village/kill_villager to DELETE /village/villager so it's clear from the HTTP method what's supposed to happen.
+
+-- We have since fixed this issue
+
+### I'm confused about why PUT /eco/grow_plants is a PUT, while all the other similar (i.e. spawn_prey) methods are POSTs. Is there a design choice to this?
+
+-- This function has since been removed and this issue no longer exists
+
+### Change the description of PUT /assignments/assign_villager. It makes no sense and describes the method incorrectly.
+
+-- This has since been fixed
+
+### What is the point of adding "job_title" in the PUT /assignments/assign_villager? I was able to change it to whatever I wanted and it still only cared about the job_id.
+
+-- This has since een fixed and it only takes in job title
+
+### Getting a 500 error on POST /eco/biomes , while using it as I believe is intended. Passed: { "Ocean":4, "Forest":6}
+
+-- This has since been fixed
+
+### Got a 500 error on GET /eco/plants
+
+-- This has since been fixed
+
+### Got a 500 error on GET /eco/prey
+
+-- This has since been fixed
+
+## Katie Slobodsky
+
+### Consider adding a unique constraint to the biome_name field in biomes to make sure that each biome name is unique
+
+-- We would not want to do this as there could be multipe of one biome so we have an 'id' field as our unique constraint
+
+### Ensure that columns like biome_name, resource_name, and job_name are not null
+
+-- This issue has been resolved
+
+### Add a created_at timestamp column to track the creation times of entities to tables such as biomes, buildings, jobs, and villagers.
+
+-- I do not think there is a need for this as there is no forseeable use case for this
+
+### Add a check constraint for the quantity field in tables such as buildings and storage to ensure that the value cannot go negative
+
+-- This issue has been resolved
+
+### Maybe you can add a level column to the jobs table as an extended feature of the game. This can open up more capabilities for each role of characters based on their level.
+
+-- This would be a nice addition to the game and make it more interesting, however given the time constraint we have, we will not have time to addd this and get it fully running in time
+
+### Instead of being stored as a string, maybe biome_name can draw from a separate biome_types table with predefined unique biome names; that way there would be less redundancy
+
+-- It would still be same amount of redundancy because if it draws from another table with unique biome names, then there would be ids for each biome name and the same biome ids could appear in the biomes table just as the same biome names would appear
+
+### Consider adding a boolean “built” field for the buildings table to track if the building is already finished or is under construction (default = FALSE)
+
+-- We do not have unique rows per bulding, there are only unique building types along with their respective amount
+
+### 1.3. All villagers - village/villagers_all/ (GET) endpoint could potentially just be changed the village/villagers
+
+-- This function has since been removed and this is no longer an issue
+
+### Add pagination for /village/villagers_all/ in the case of returning a very large list
+
+-- This function has since been removed and this is no longer an issue
+
+### You can combine /village/fill_inventory and /village/building_inventory into a single /village/inventory endpoint with parameters for viewing or adjusting/building inventory
+
+-- I think it would be best to keep GET and POST functions separate to signify their specific function and make the code more friendly and readable
+
+### In 2. Eco, "entity_type": "string", /* Should be "plants" */ Here, maybe instead of storing entity_type as a string, you could have an entity_id field that references an entities table that stores entity_id and the entity_type so that there is a clear predefined list of entity types.
+
+-- I do not think this is a necessary change that needs to be made as the user would know from the display that the only entities are plants, predators, water, trees, and prey
+
+### “nourishment” could have more clearer specifications, such as if it needs to be within a certain numerical range
+
+-- This has now been specified in the API spec
+
+## Amir Minabian
+
+### Schema Normalization: The villagers table could be normalized further by separating job_id details into a relationship table for better scalability, especially if villagers can have multiple roles.
+
+-- Villagers cannot have multiple roles, and there is a separate table for jobs that villagers references to determined what job that villager is asigned to.
+
+### Foreign Keys: Ensure foreign keys are indexed, such as building_id in the catalog table, to improve query performance when joining tables on these keys.
+
+-- Thi issue has been resolved
+
+### Data Types: Consider using specific data types for certain fields. For example, a boolean field for status flags (like is_active for villagers) instead of integer values where applicable.
+
+-- All columns take in specific data types for their use cases
+
+### Redundant Fields: In the jobs and buildings tables, there appears to be some redundancy in quantity. Consider combining similar tables or fields if they serve the same purpose to minimize redundancy.
+
+-- These tables have different columns and different use cases so this would not be possible
+
+### Primary Key Use: Primary keys are appropriately used, but consider adding unique constraints for fields like biome_name in the biomes table to prevent duplicate records.
+
+-- This issue has since been resolved
+
+### Endpoint Naming: Use plural nouns for collections in endpoints (e.g., /villages instead of /village) to follow RESTful conventions and make the API more intuitive.
+
+-- I do not think this is a necassary change that needs to be made as it does not change functionality but we will take this into account
+
+### Consistent Responses: Ensure all endpoints return a consistent structure, including metadata (status codes, timestamps) and data objects, to improve API usability.
+
+-- This issue has been resolved
+
+### API Documentation: Ensure each endpoint is documented with expected inputs, outputs, and examples. The /docs route provides some information, but adding detailed explanations of each parameter in the API spec would be beneficial.
+
+-- This issue has been resolved
+
+### Error Handling in Endpoints: Implement consistent error messages across endpoints. For instance, if a resource is not found, use a standardized error response with a helpful message for users.
+
+-- This issue has been resolved
+
+### Endpoint Permissions: Set role-based permissions for sensitive operations, such as creating or deleting resources. Only authenticated users should be allowed to perform certain actions to enhance security.
+
+-- creating and deleting rows is a part of the logic of the game so this must be allowed during the entire game time to the user. It should not be possible to delete rows that should not be deleted in our endpoints.
+
+### Caching Opportunities: Implement caching for endpoints that return static or infrequently updated data, like /village/catalog, to reduce load and improve response time.
+
+-- We do cache reurns from endpoints in the game and only call the endpoints when necessary
+
+### Rate Limiting: Introduce rate limiting on critical endpoints to prevent abuse and ensure service availability.
+
+-- All endpoints are only called when necessary and it is not possible to abuse these endpoints from the users end through the game.
+
+## Cory Cowden
+
+### Many foreign keys are set up as “null”. Consider making “not null” if they need to always exist – for example, a villager may always need a job_id, even if 0 for unassigned.
+
+-- This issue has been resolved
+
+### Instead of having separate rows for each building cost in the catalog table, consider combining it to create a new column in the buildings table to display the cost, instead of having a separate catalog table
+
+-- We have these separate for readability purposes so we know we are accessing the table for building
+
+### Rename “entitys” table to “entities” for correct spelling
+
+-- This issue has been resolved
+
+### Villagers and biomes are not connected. Consider adding a biome_id to villagers table to be able to track what biome the villager is in
+
+-- This is not necessary as the villagers will be in the village at all times and it is not necessary to track a villagers location
+
+### Consider restricting nourishment from 0-100. Restricting the values could make it clearer
+
+-- We do keep nourishment in a range from 0-100
+
+### Consider renaming primary key, “inventory_pkey” from the buildings table to “buildings_pkey” for clarity
+
+-- This issue has since been resolved
+
+### Consider restricting what values can be set for values like quantity, like only positive numbers
+
+-- This issue has since been resolved
+
+### Consider adding a status column to villagers table to identify if a villager is alive, dead, or dying (if nourishment is too low or age is too high)
+
+-- All dead villagers are deleted from the villagers table and the user can tell if a villager is dying from thier nourishment levels
+
+### Consider adding a default biome for villagers to prevent incomplete values when creating a villager
+
+-- We do not keep track of the biome the villager is in
+
+### Consider making important values such as biome_id in villagers set to “not null”
+
+-- All important fields are st to not null and we do not keep track of the biome for the villagers
+
+### Consider setting restrictions on job types, so that only valid inputs can be passed
+
+-- This issue has been resolved
+
+### Consider setting default values in buildings, such as 0 for quantity so that you do not end up with null errors
+
+-- This issue has been resolved
+
+## Dionne Gregorio
+
+### For building_id, you could move the quantity into the catalog table, leaving only building id and building name
+
+-- We would want to keep quantity and cost separate for simplicity
+
+### For the entitys table you can break up entity type to another table and have each entity have their own entity id. also i think its spelled entities
+
+-- The spelling has been fixed, and adding a table would not be necessary as it has the same redundancy and would just take up more space
+
+### You could add a separate resource table instead of having it a column for the storage table.
+
+-- Our resources are stored separatley in the storage table already
+
+### In the biomes table the biome_name is nullable, you wouldn't want to create an id without a name. Also in the Buildings table, the name is nullable
+
+-- This issue has been resolved
+
+### For the catalogs table, having building id and cost be nullable isn't good practice. Should be not nullable
+
+-- This issue has been resolved
+
+### I don't think there is a relationship between how many villagers are in the biomes.
+
+-- We do not keep track of biomes for villagers
+
+### Catalog could be moved to its own endpoint instead of having it in the village.py
+
+-- I do not think this is a necessary change as it would only take up more space adding another file that has maybe one enpoint
+
+### Village inventory could be moved to an inventory endpoint. You could set a cap on how many villagers you could have and provide a way to expand your biome
+
+-- Viewing the village inventory is already its own endpoint and biomes cannot be expanded
