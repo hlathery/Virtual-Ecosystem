@@ -4,6 +4,7 @@ from src.api import auth
 import sqlalchemy
 from src import database as db
 from enum import Enum
+import datetime
 
 router = APIRouter(
     prefix="/village",
@@ -43,6 +44,10 @@ def get_village_overview():
     """
     Returns a general overview of village characteristics and villagers
     """
+    # In format HH:MM:SS.mS
+    start_time = datetime.datetime.now()
+
+
     with db.engine.begin() as connection:
         villager_count = connection.execute(sqlalchemy.text("SELECT COUNT(villagers.id) AS num_villagers FROM villagers")).scalar()
         buildings = connection.execute(sqlalchemy.text("SELECT name, quantity FROM buildings"))
@@ -52,6 +57,11 @@ def get_village_overview():
     for row in buildings:
         buildings_name.append(row.name)
         buildings_count.append(row.quantity)
+
+    
+    endtime = datetime.datetime.now()
+    runtime = endtime - start_time
+    print("village/ runtime: " + str(runtime))
 
     return {
                 "buildings": buildings_name,
@@ -66,7 +76,8 @@ def catalog():
     """
     Gets the catalog of valid buildings available to build
     """
-    
+    start_time = datetime.datetime.now()
+
     select_query =  """
                             SELECT buildings.name AS type,
                                 catalog.cost AS price
@@ -83,6 +94,10 @@ def catalog():
         if row.price < funds:
             types.append(row.type)
             costs.append(row.price)
+    
+    endtime = datetime.datetime.now()
+    runtime = endtime - start_time
+    print("village/catalog runtime: " + str(runtime))
 
     return {
             "buildings": types,
@@ -96,6 +111,8 @@ def create_villager(amount: int):
     """
     Creates one or many villagers (id auto incrementing and job_id can start null).
     """
+    start_time = datetime.datetime.now()
+
     if amount == 0:
         return "No villagers created"
     elif amount < 0:
@@ -114,6 +131,10 @@ def create_villager(amount: int):
 
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text(insert_query), update_list)
+    
+    endtime = datetime.datetime.now()
+    runtime = endtime - start_time
+    print("PUT village/villager runtime: " + str(runtime))
 
     return f"{amount} villager(s) succesfully created"
 
@@ -124,6 +145,9 @@ def remove_villager(amount: int):
     Kills the oldest villagers. Based on the amount, it will order that many villagers to be killed by age (highest to lowest)
     Returns the id and age of each villager killed.
     """
+    
+    start_time = datetime.datetime.now()
+
     with db.engine.begin() as connection:
         villagers = connection.execute(sqlalchemy.text("SELECT COUNT(*) AS amount FROM villagers"))
         vil = villagers.fetchone()
@@ -144,6 +168,11 @@ def remove_villager(amount: int):
                                         ) 
                                 """
         connection.execute(sqlalchemy.text(kill_villager_query),{"num": amount})
+    
+    
+    endtime = datetime.datetime.now()
+    runtime = endtime - start_time
+    print("DELETE village/villager runtime: " + str(runtime))
 
     return f"{amount} villager(s) succesfully removed"
 
@@ -153,6 +182,9 @@ def update_villager():
     """
     Updates villager population after decisions are made based on food and water income of that year
     """
+    
+    start_time = datetime.datetime.now()
+
     with db.engine.begin() as connection:
         water = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM storage WHERE resource_name = 'water'")).scalar_one()
         food = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM storage WHERE resource_name = 'food'")).scalar_one()
@@ -164,17 +196,24 @@ def update_villager():
                                 """
         connection.execute(sqlalchemy.text(update_villager_query),{'water':water,'food':food})
 
+    
+    endtime = datetime.datetime.now()
+    runtime = endtime - start_time
+    print("village/villager_update runtime: " + str(runtime))
+
     # Make sure you can't take more than available
     return "Villagers consumed food and water"  # PLACEHOLDER
 
 
-@router.post("/build_building")
+@router.post("/building")
 def build_structure(buildings: list[Building]):
     """
     Takes in buildings user wants to build or remove.
     Negative values to remove building, positive to add.
     Cannot go below 0.
     """
+    start_time = datetime.datetime.now()
+
     if len(buildings) == 0:
         return "No structures built"
 
@@ -193,15 +232,20 @@ def build_structure(buildings: list[Building]):
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text("UPDATE buildings SET quantity = quantity + :amount WHERE name = :name"), update_list)
 
+    endtime = datetime.datetime.now()
+    runtime = endtime - start_time
+    print("village/building runtime: " + str(runtime))
+
     # return f"{buildings_sum} structure(s) built"
     return f"Structures built: {update_list}"
 
 
-@router.put("/fill_inventory")
+@router.put("/inventory")
 def adjust_storage(storages: list[BuildingStorage]):
     """
     Adjusts storage amounts in buildings based off certain game logic (make quantity values + or - as desired)
     """
+    start_time = datetime.datetime.now()
 
     if len(storages) == 0:
         return {"error": "Must provide resources to adjust!"}
@@ -238,6 +282,11 @@ def adjust_storage(storages: list[BuildingStorage]):
 
         connection.execute(sqlalchemy.text(storage_update_query), update_list)
 
+    
+    endtime = datetime.datetime.now()
+    runtime = endtime - start_time
+    print("village/inventory runtime: " + str(runtime))
+
     return "Storage updated successfully!"
 
 
@@ -247,6 +296,7 @@ def view_village_inventory():
     """
     Returns a list of all village resources and how much of that resource is available.
     """
+    start_time = datetime.datetime.now()
 
     with db.engine.begin() as connection:
         query = """
@@ -261,5 +311,9 @@ def view_village_inventory():
     for item in resources:
         resource_list.append({"resource_name" : item.resource,
                                 "quantity" : item.quantity})
+
+    endtime = datetime.datetime.now()
+    runtime = endtime - start_time
+    print("village/village_inventory runtime: " + str(runtime))
 
     return resource_list

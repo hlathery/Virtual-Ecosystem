@@ -9,6 +9,7 @@ from enum import Enum
 from typing import Dict
 from fastapi import HTTPException, status
 import random
+import datetime
 
 router = APIRouter(
     prefix="/eco",
@@ -62,6 +63,8 @@ def get_eco_overview():
     Returns a general overview of the ecosystem with each biome listed once, showing all entities
     and their nourishment levels within that biome.
     """
+    # In format HH:MM:SS.mS
+    start_time = datetime.datetime.now()
     
     overview_query = """
         SELECT 
@@ -89,15 +92,20 @@ def get_eco_overview():
                 "entities": row.entity_details if row.entity_details else "No entities"
             })
     
+    endtime = datetime.datetime.now()
+    runtime = endtime - start_time
+    print("eco/ runtime: " + str(runtime))
+
     return overview
 
 # COMPLEX ENDPOINT
-@router.post("/biomes/")
+@router.post("/biomes")
 def post_biome_counts(biomes: BiomeCounts):
     """
     Posts the biome counts from flood fill.
     Creates new biome entries based on the counts.
     """
+    start_time = datetime.datetime.now()
 
     try: # trying to connect and retrieve the data from flood fill
         biomes_dict = biomes.dict()
@@ -118,7 +126,10 @@ def post_biome_counts(biomes: BiomeCounts):
                     sqlalchemy.text(insert_query),
                     [{"biome_name": biome_name} for biome_name, in insert_data]
                 )
-        
+        endtime = datetime.datetime.now()
+        runtime = endtime - start_time
+        print("eco/biomes runtime: " + str(runtime))
+
         return {"message": "Biome counts recorded successfully"}
     except Exception as e:
         print(f"Database error: {str(e)}")
@@ -133,6 +144,9 @@ def plants_overview():
    """
    Returns the total nourishment of plants in the entire ecosystem.
    """
+
+   start_time = datetime.datetime.now()
+   
    plants_query = """
        SELECT entity_type AS type, 
            SUM(nourishment) AS nourishment
@@ -149,7 +163,11 @@ def plants_overview():
            
        entity_type = plants_table.type
        total = plants_table.nourishment
-       
+    
+   endtime = datetime.datetime.now()
+   runtime = endtime - start_time
+   print("eco/plants runtime: " + str(runtime)) 
+
    return {
        "entity_type": entity_type,
        "nourishment": total
@@ -163,6 +181,9 @@ def spawn_entity(entity_to_spawn: list[Entity]):
     Will only create new entities if they don't already exist in the specified biome.
     Returns early if no entities are provided.
     """
+
+    start_time = datetime.datetime.now()
+   
     
     if not entity_to_spawn:
         return {
@@ -229,6 +250,12 @@ def spawn_entity(entity_to_spawn: list[Entity]):
         
         connection.execute(sqlalchemy.text(insert_query), entity_list)
 
+    
+    endtime = datetime.datetime.now()
+    runtime = endtime - start_time
+    print("eco/entity runtime: " + str(runtime)) 
+
+
     return {
         "message": "Entities successfully spawned",
         "entities_created": len(entity_list)
@@ -241,6 +268,8 @@ def update_nourishment(entity_updates: list[EntityUpdate]):
     Updates nourishment values for specific entities by their IDs.
     Ensures no negative IDs are allowed.
     """
+    start_time = datetime.datetime.now()
+   
     
     if not entity_updates: 
         return {
@@ -271,6 +300,10 @@ def update_nourishment(entity_updates: list[EntityUpdate]):
     
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text(update_query), update_list)
+
+    endtime = datetime.datetime.now()
+    runtime = endtime - start_time
+    print("eco/entity/nourishment runtime: " + str(runtime)) 
     
     return {
         "message": "Nourishment updated successfully",
@@ -283,6 +316,9 @@ def biome_prey(biome_id: int):
     """
     Returns the nourishment of prey in the requested biome.
     """
+
+    start_time = datetime.datetime.now()
+   
     with db.engine.begin() as connection:
         biome_check_query = """
             SELECT id FROM biomes WHERE id = :biome_id
@@ -317,6 +353,10 @@ def biome_prey(biome_id: int):
                 "nourishment": 0
             }
 
+    endtime = datetime.datetime.now()
+    runtime = endtime - start_time
+    print("eco/prey/biome_id runtime: " + str(runtime)) 
+    
     return {
         "entity_type": prey.type,
         "nourishment": prey.nourishment
@@ -328,6 +368,9 @@ def biome_predator(biome_id: int):
    """
    Returns a list of predator and their nourishment in the requested biome.
    """
+   
+   start_time = datetime.datetime.now()
+   
    with db.engine.begin() as connection:
        biome_check_query = """
            SELECT id FROM biomes WHERE id = :biome_id
@@ -361,7 +404,11 @@ def biome_predator(biome_id: int):
                "entity_type": "predators", 
                "nourishment": 0
            }
-
+    
+   endtime = datetime.datetime.now()
+   runtime = endtime - start_time
+   print("eco/predator/biome_id runtime: " + str(runtime)) 
+    
    return {
        "entity_type": predator.type,
        "nourishment": predator.nourishment
@@ -382,6 +429,9 @@ def check_disaster():
     Has a chance to cause a random disaster, increases chance of disaster by 2% until one occurs.
     When a disaster occurs, up to 5 villagers can be killed.
     """
+    start_time = datetime.datetime.now()
+   
+
     global disaster_counter
     
     try:
@@ -458,6 +508,11 @@ def check_disaster():
 
                     deleted = len(result.fetchall())
             
+            
+            endtime = datetime.datetime.now()
+            runtime = endtime - start_time
+            print("eco/disaster TRUE runtime: " + str(runtime)) 
+    
             return {
                 "message": f"Disaster occurred: {disaster_type}",
                 "Villagers Killed": deleted
@@ -465,6 +520,11 @@ def check_disaster():
         
         else:
             disaster_counter += 1
+
+            endtime = datetime.datetime.now()
+            runtime = endtime - start_time
+            print("eco/disaster FALSE runtime: " + str(runtime)) 
+    
             return {
                 "message": "No disaster occurred",
                 "current_probability": f"{base_probability * 100}%",
