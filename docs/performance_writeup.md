@@ -37,7 +37,7 @@ Request for biomes:
 }
 ```
 
- - eco/plants runtime: 0:00:00.011714 (with 100 plants per biome w/ 4 biomes
+ - eco/plants runtime: 0:00:00.011714 (with 100 plants per biome w/ 4 biomes)
  - eco/entity runtime: 0:00:00.022300 (Inserting entity into biome)
  - eco/entity/nourishment runtime: 0:00:00.023006
  - eco/prey/biome_id runtime: 0:00:00.018261
@@ -63,15 +63,13 @@ Request for Assignments:
 
 ## Slowest Endpoints:
  - village/villager_update runtime: 0:00:10.744642
- - jobs/assignments runtime: 0:00:02.170144
+ - jobs/assignments runtime: 0:00:02.170144 (Updating 90000 rows)
  - PUT village/villager runtime: 0:00:01.349416 (Inserting 1000 villagers)
 
 # Performance Tuning
 ### village/villager_update
 Query:
 ```
-water = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM storage WHERE resource_name = 'water'")).scalar_one()
-        food = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM storage WHERE resource_name = 'food'")).scalar_one()
 UPDATE villagers
 SET
 age = age+1,
@@ -83,42 +81,165 @@ Explain:
 | Update on villagers  (cost=0.00..30973.03 rows=0 width=0)                |
 |   ->  Seq Scan on villagers  (cost=0.00..30973.03 rows=1200002 width=14) |
 
-Query: 
+The explain shows that the query planner is using a Sequential Scan, meaning the query is progressing through every single row/record sequentially and updating. Some index solutions could be creating an index on each villager via villager_id, however PostGres already does this automatically due to the unique field constraint on villager_id. 
 
-The explain shows that the query planner is using a Sequential Scan, meaning the query is progressing through every single row/record sequentially and updating. Some index solutions could be creating an index on each villager via villager_id, however PostGres already does this automatically due to the unique field constraint on villager_id. Another Index to do 
+Index Command: create index villagers_index ON villagers (id)
 
-Index Command:
 Explain:
+
+| QUERY PLAN                                                               |
+| ------------------------------------------------------------------------ |
+| Update on villagers  (cost=0.00..30973.03 rows=0 width=0)                |
+|   ->  Seq Scan on villagers  (cost=0.00..30973.03 rows=1200002 width=14) |
+
+As expected, this did not have any performance lift as sequential search is needed to traverse every single row and update each row individually. Indexing by any other row (such as age and nourishment) will hurt performance as the index will need to change everytime the row value changes.
+
+Query: 
+```
+SELECT SUM(quantity) FROM storage WHERE resource_name = 'water'
+```
+Explain:
+
+| QUERY PLAN                                                   |
+| ------------------------------------------------------------ |
+| Aggregate  (cost=24.14..24.15 rows=1 width=8)                |
+|   ->  Seq Scan on storage  (cost=0.00..24.12 rows=6 width=4) |
+|         Filter: (resource_name = 'water'::text)              |
+
+Explain shows that the planner is using a sequential scan to sum each quantity where resource name is 'water' and this filtering should reduce the amount of rows looked at. Indexing by the resource name, in this case water, may help.
+
+Index Command: create index resource_idx ON storage (resource_name)
+
+Explain:
+
+| QUERY PLAN                                                  |
+| ----------------------------------------------------------- |
+| Aggregate  (cost=1.04..1.05 rows=1 width=8)                 |
+|   ->  Seq Scan on storage  (cost=0.00..1.04 rows=1 width=4) |
+|         Filter: (resource_name = 'water'::text)             |
+
+The index did not have any performance uplift, mainly due to the lack of rows on the storage table (only having 3 rows). The query planner uses sequential search as it's still faster as all the data is on a single page.
+
+Query:
+```
+SELECT SUM(quantity) FROM storage WHERE resource_name = 'food'"
+```
+Explain:
+
+| QUERY PLAN                                                  |
+| ----------------------------------------------------------- |
+| Aggregate  (cost=1.04..1.05 rows=1 width=8)                 |
+|   ->  Seq Scan on storage  (cost=0.00..1.04 rows=1 width=4) |
+|         Filter: (resource_name = 'food'::text)              |
+
+Similar to the previous query, indexing will not help as the storage table is too small and fits on one page.
+
+Index Command: create index resource_idx ON storage (resource_name)
+
+Explain:
+
+| QUERY PLAN                                                  |
+| ----------------------------------------------------------- |
+| Aggregate  (cost=1.04..1.05 rows=1 width=8)                 |
+|   ->  Seq Scan on storage  (cost=0.00..1.04 rows=1 width=4) |
+|         Filter: (resource_name = 'food'::text)              |
+
+As expected, no performance uplift.
 
 ### jobs/assignments
 Query:
 ```
+UPDATE villagers 
+        SET job_id = (
+            SELECT id 
+            FROM jobs 
+            WHERE job_name = :job_name
+        )
+        WHERE id IN (
+            SELECT id 
+            FROM villagers 
+            WHERE job_id = 0 
+            LIMIT :assigned
+        )
+        RETURNING id
 ```
+EXPLAIN (Using :assigned = 1000):
 
+| QUERY PLAN                                                                                                 |
+| ---------------------------------------------------------------------------------------------------------- |
+| Update on villagers  (cost=140.09..7915.33 rows=1000 width=38)                                             |
+|   InitPlan 1 (returns $0)                                                                                  |
+|     ->  Index Scan using jobs_job_name_key on jobs  (cost=0.15..8.17 rows=1 width=4)                       |
+|           Index Cond: (job_name = 'hunter'::text)                                                          |
+|   ->  Nested Loop  (cost=131.92..7907.16 rows=1000 width=38)                                               |
+|         ->  HashAggregate  (cost=131.49..141.49 rows=1000 width=32)                                        |
+|               Group Key: "ANY_subquery".id                                                                 |
+|               ->  Subquery Scan on "ANY_subquery"  (cost=0.00..128.99 rows=1000 width=32)                  |
+|                     ->  Limit  (cost=0.00..118.99 rows=1000 width=4)                                       |
+|                           ->  Seq Scan on villagers villagers_1  (cost=0.00..27973.03 rows=235080 width=4) |
+|                                 Filter: (job_id = 0)                                                       |
+|         ->  Index Scan using villagers_index on villagers  (cost=0.43..7.77 rows=1 width=10)               |
+|               Index Cond: (id = "ANY_subquery".id)                                                         |
 
-Index Command:
+Explain shows that the first sub query that finds the job id where the id matches the name already uses an index, automically assigned by PostGres due to the schema having job_name unique. The next subquery searches the villagers table where job_id = 0 using sequential scan. Since we always search the villagers where job_id = 0 (meaning unassigned job), it would be worth giving it an index. The last part of the planner uses an index to search those villagers by id (unique, index made by PostGres).
+
+Index Command: create index villager_unassigned_idx ON villagers (job_id) WHERE (job_id = 0)
+
+create index job_villagers_idx ON villagers (job_id)
+
 Explain:
+
+| QUERY PLAN                                                                                                 |
+| ---------------------------------------------------------------------------------------------------------- |
+| Update on villagers  (cost=140.09..7915.33 rows=1000 width=38)                                             |
+|   InitPlan 1 (returns $0)                                                                                  |
+|     ->  Index Scan using jobs_job_name_key on jobs  (cost=0.15..8.17 rows=1 width=4)                       |
+|           Index Cond: (job_name = 'hunter'::text)                                                          |
+|   ->  Nested Loop  (cost=131.92..7907.16 rows=1000 width=38)                                               |
+|         ->  HashAggregate  (cost=131.49..141.49 rows=1000 width=32)                                        |
+|               Group Key: "ANY_subquery".id                                                                 |
+|               ->  Subquery Scan on "ANY_subquery"  (cost=0.00..128.99 rows=1000 width=32)                  |
+|                     ->  Limit  (cost=0.00..118.99 rows=1000 width=4)                                       |
+|                           ->  Seq Scan on villagers villagers_1  (cost=0.00..27973.03 rows=235080 width=4) |
+|                                 Filter: (job_id = 1)                                                       |
+|         ->  Index Scan using villagers_index on villagers  (cost=0.43..7.77 rows=1 width=10)               |
+|               Index Cond: (id = "ANY_subquery".id)                                                         |
+
+Unfortunately the index does not improve performance. This may be due to the amount of rows (235,080 rows) needed to index where traversing sequnetially is faster. Since the width is only 4 it isn't enough data to extend another page, so using the index would not make sense (indexing would require checking the index page then the data). This does work with jobs with small amounts of villagers (see below), since the index will directly lead to the small amount of data rather than traversing sequentially; but this does not help this endpoint
+
+Explain: 
+
+| QUERY PLAN                                                                                                                  |
+| --------------------------------------------------------------------------------------------------------------------------- |
+| Update on villagers  (cost=17.05..25.08 rows=1 width=38)                                                                    |
+|   InitPlan 1 (returns $0)                                                                                                   |
+|     ->  Index Scan using jobs_job_name_key on jobs  (cost=0.15..8.17 rows=1 width=4)                                        |
+|           Index Cond: (job_name = 'hunter'::text)                                                                           |
+|   ->  Nested Loop  (cost=8.88..16.91 rows=1 width=38)                                                                       |
+|         ->  HashAggregate  (cost=8.46..8.47 rows=1 width=32)                                                                |
+|               Group Key: "ANY_subquery".id                                                                                  |
+|               ->  Subquery Scan on "ANY_subquery"  (cost=0.43..8.46 rows=1 width=32)                                        |
+|                     ->  Limit  (cost=0.43..8.45 rows=1 width=4)                                                             |
+|                           ->  Index Scan using job_villagers_idx on villagers villagers_1  (cost=0.43..8.45 rows=1 width=4) |
+|                                 Index Cond: (job_id = 6)                                                                    |
+|         ->  Index Scan using villagers_index on villagers  (cost=0.43..8.45 rows=1 width=10)                                |
+|               Index Cond: (id = "ANY_subquery".id)                                                                          |
+
+
 ### village/villager
 Query:
 ```
-for _ in range(0, amount):    
-        update_list.append({"age": 18,
-                            "nourishment":100})
-    insert_query = """
         INSERT INTO villagers (age, nourishment)
         VALUES (:age, :nourishment)
-    """
 ```
-Explain (Runs Explain analyze): 
-| QUERY PLAN                                                                                      |
-| ----------------------------------------------------------------------------------------------- |
-| Insert on villagers  (cost=0.00..0.01 rows=0 width=0) (actual time=0.286..0.287 rows=0 loops=1) |
-|   ->  Result  (cost=0.00..0.01 rows=1 width=16) (actual time=0.093..0.094 rows=1 loops=1)       |
-| Planning Time: 0.054 ms                                                                         |
-| Trigger for constraint villagers_job_id_fkey: time=1.056 calls=1                                |
-| Execution Time: 1.451 ms                                                                        |
 
-Since this is simply an insert, the query planner simply does an insert. One potential index to use is indexing the actual 
+Explain: 
+| QUERY PLAN                                            |
+| ----------------------------------------------------- |
+| Insert on villagers  (cost=0.00..0.01 rows=0 width=0) |
+|   ->  Result  (cost=0.00..0.01 rows=1 width=16)       |
+
+Since this is simply an insert, the query planner simply does an insert. villager_id indexing is running in the background to auto increment the id. The only way to speed up this query is by removing indexing (less writing to the db) but that is not possible.
 
 
 
