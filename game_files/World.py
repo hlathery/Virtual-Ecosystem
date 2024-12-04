@@ -78,10 +78,10 @@ class World():
         }
         
         MIN_BIOME_SIZES = { # our bounds
-            "ocean": 10,   
+            "ocean": 20,   
             "beach": 100,   
             "grassland": 300,
-            "forest": 20       
+            "forest": 30       
         }
         
         def get_biome_name(tile_type):

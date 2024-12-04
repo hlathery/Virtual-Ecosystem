@@ -16,6 +16,7 @@ class WorldDrawer:
 
         # load tile sheet, and extract the cell images
         self.tilesheet = pygame.image.load(TILESHEET_PATH)
+        self.costs = ['30', '35', '40', '25']
 
         self.height_map = height_map
         self.font = pygame.font.SysFont(None, 20)
@@ -161,6 +162,7 @@ class WorldDrawer:
                     pygame.draw.rect(self.display_surface, (0,0,255), button)
                     self.draw_text("Add "+catalog_list['buildings'][i], (255,255,255), x+5, y+55+((interval+height)*c))
                     self.draw_text(f"{math.floor(catalog_list['funds']/catalog_list['costs'][i])}", (255,255,255), x+375, y+55+((interval+height)*c))
+                    self.draw_text("Cost: " + self.costs[i] + " Wood", (255,255,255), x+5, y+55+((interval+height)*c)+30)
                     c += 1
 
                 mx, my = pygame.mouse.get_pos()
@@ -321,7 +323,7 @@ class WorldDrawer:
                 res = requests.put("http://127.0.0.1:3000/eco/entity/nourishment", json=[{'id':biome_water['id'], 'nourishment':(-1*forager*5)+10}], headers=self.post_headers)
                 for o in self.ord:
                     if o['biome'] == 'ocean':
-                        update = 10+biome_water['nourishment']-forager*5
+                        update = 10+biome_water['nourishment']-forager*10
                         if update >= 100:
                             update = 1
                         else:
@@ -350,7 +352,7 @@ class WorldDrawer:
                     res = requests.put("http://127.0.0.1:3000/eco/entity/nourishment", json=[{'id':biome_trees['id'], 'nourishment':(-1*lumber*5)+10}], headers=self.post_headers)
                     for o in self.ord:
                         if o['biome'] == 'forest':
-                            update = 10+biome_trees['nourishment']-lumber*5
+                            update = 10+biome_trees['nourishment']-lumber*10
                             if update >= 100:
                                 update = 1
                             else:
@@ -369,7 +371,7 @@ class WorldDrawer:
         res = requests.put("http://127.0.0.1:3000/village/storage",
                            json=[{'resource_name':'water', 'amount':(-1*pop['num_villager']*5)+(forager*5)},
                                  {'resource_name':'food', 'amount':(-1*pop['num_villager']*5)+(hunter*5)},
-                                 {'resource_name':'wood', 'amount':(lumber*5)}],
+                                 {'resource_name':'wood', 'amount':(lumber*20)}],
                            headers=self.post_headers)
         res = requests.post("http://127.0.0.1:3000/village/villager_update", headers=self.post_headers)
         res = requests.delete(f"http://127.0.0.1:3000/village/villager/{round(pop['num_villager']/5)}", headers=self.get_headers)
