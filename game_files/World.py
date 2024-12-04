@@ -143,9 +143,8 @@ class World():
                     biome_name = get_biome_name(current_type)
                     if biome_name:
                         size, ord = flood_fill(x, y, current_type)
-                        order.append({"biome":biome_name,"order":ord})
                         if size >= MIN_BIOME_SIZES[biome_name]:
+                            order.append({"biome":biome_name,"order":ord})
                             biome_counts[biome_name] += 1
         res = requests.post("http://127.0.0.1:3000/eco/biomes/", json=biome_counts, headers={"accept": "application/json", "access_token": "hlath", "Content-Type": "application/json"})
-
         return order

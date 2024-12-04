@@ -259,7 +259,7 @@ def update_nourishment(entity_updates: list[EntityUpdate]):
     """
     Updates nourishment values for specific entities by their IDs.
     Ensures no negative IDs are allowed.
-    """
+    """   
     
     if not entity_updates: 
         return {
@@ -289,12 +289,19 @@ def update_nourishment(entity_updates: list[EntityUpdate]):
     """
     
     with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text(update_query), update_list)
-    
-    return {
-        "message": "Nourishment updated successfully",
-        "entities_updated": len(update_list)
-    }
+        result = connection.execute(sqlalchemy.text(update_query), update_list)
+        connection.execute(sqlalchemy.text("UPDATE entities SET nourishment = 100 WHERE nourishment > 100"))
+
+    if result.rowcount == 0:
+        return {
+        "message": "Provided id does not exist",
+        "entities_updated": result.rowcount
+        }
+    elif result.rowcount > 0:
+        return {
+            "message": "Nourishment updated successfully",
+            "entities_updated": len(update_list)
+        }
 
 
 @router.get("/prey/{biome_id}", status_code=status.HTTP_200_OK, response_description="Success")
@@ -492,8 +499,24 @@ def clean():
     """
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text("DELETE FROM entities WHERE nourishment <= 0"))
+        res = connection.execute(sqlalchemy.text(
+            """
+                SELECT
+                    biomes.id,
+                    COALESCE(COUNT(entities.id),0) AS cnt
+                FROM entities
+                JOIN biomes ON entities.biome_id = biomes.id
+                GROUP BY biomes.id
+            """
+        ))
+        update = []
+        for row in res:
+            if row.cnt == 0:
+                update.append({'id': row.id})
+        if update:
+            connection.execute(sqlalchemy.text("DELETE FROM biomes WHERE id = :id"), update)
 
-    return "Successfully Deleted Biomes With Nourishment 0 Or Below"
+    return "Successfully Deleted Enities With Nourishment 0 Or Below and Biomes With no Entities"
 
 
 # global variable for disasters

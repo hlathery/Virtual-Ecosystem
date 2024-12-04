@@ -43,6 +43,7 @@ def get_village_overview():
     """
     Returns a general overview of village characteristics and villagers
     """
+
     with db.engine.begin() as connection:
         villager_count = connection.execute(sqlalchemy.text("SELECT COUNT(villagers.id) AS num_villagers FROM villagers")).scalar()
         buildings = connection.execute(sqlalchemy.text("SELECT name, quantity FROM buildings"))
@@ -66,7 +67,7 @@ def catalog():
     """
     Gets the catalog of valid buildings available to build
     """
-    
+
     select_query =  """
                             SELECT buildings.name AS type,
                                 catalog.cost AS price
@@ -96,6 +97,7 @@ def create_villager(amount: int):
     """
     Creates one or many villagers (id auto incrementing and job_id can start null).
     """
+
     if amount == 0:
         return "No villagers created"
     elif amount < 0:
@@ -124,6 +126,7 @@ def remove_villager(amount: int):
     Kills the oldest villagers. Based on the amount, it will order that many villagers to be killed by age (highest to lowest)
     Returns the id and age of each villager killed.
     """
+    
     with db.engine.begin() as connection:
         villagers = connection.execute(sqlalchemy.text("SELECT COUNT(*) AS amount FROM villagers"))
         vil = villagers.fetchone()
@@ -153,6 +156,7 @@ def update_villager():
     """
     Updates villager population after decisions are made based on food and water income of that year
     """
+    
     with db.engine.begin() as connection:
         water = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM storage WHERE resource_name = 'water'")).scalar_one()
         food = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM storage WHERE resource_name = 'food'")).scalar_one()
@@ -163,6 +167,7 @@ def update_villager():
                                         nourishment = nourishment+:water+:food-100
                                 """
         connection.execute(sqlalchemy.text(update_villager_query),{'water':water,'food':food})
+        connection.execute(sqlalchemy.text("UPDATE villagers SET nourishment = 100 WHERE nourishment > 100"))
 
     # Make sure you can't take more than available
     return "Villagers consumed food and water"  # PLACEHOLDER
@@ -175,6 +180,7 @@ def build_structure(buildings: list[Building]):
     Negative values to remove building, positive to add.
     Cannot go below 0.
     """
+
     if len(buildings) == 0:
         return "No structures built"
 

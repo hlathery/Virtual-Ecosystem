@@ -1,8 +1,8 @@
 import os
 
 TILESHEET_PATH = os.path.join("Assets/", "better-tileset.png")
-SCREEN_HEIGHT = 900
-SCREEN_WIDTH = 1400
+SCREEN_HEIGHT = 800
+SCREEN_WIDTH = 1200
 FPS = 60
 TILESIZE        = 16       # tile width/height in pixels in tilesheet
 WORLD_X         = (SCREEN_WIDTH + TILESIZE - 1) // TILESIZE
