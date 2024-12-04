@@ -9,7 +9,6 @@ from enum import Enum
 from typing import Dict
 from fastapi import HTTPException, status
 import random
-import datetime
 
 router = APIRouter(
     prefix="/eco",
@@ -63,8 +62,6 @@ def get_eco_overview():
     Returns a general overview of the ecosystem with each biome listed once, showing all entities
     and their nourishment levels within that biome.
     """
-    # In format HH:MM:SS.mS
-    start_time = datetime.datetime.now()
     
     overview_query = """
         SELECT 
@@ -91,10 +88,6 @@ def get_eco_overview():
                 "biome_name": row.biome_name,
                 "entities": row.entity_details if row.entity_details else "No entities"
             })
-    
-    endtime = datetime.datetime.now()
-    runtime = endtime - start_time
-    print("eco/ runtime: " + str(runtime))
 
     return overview
 
@@ -105,7 +98,6 @@ def post_biome_counts(biomes: BiomeCounts):
     Posts the biome counts from flood fill.
     Creates new biome entries based on the counts.
     """
-    start_time = datetime.datetime.now()
 
     try: # trying to connect and retrieve the data from flood fill
         biomes_dict = biomes.dict()
@@ -126,9 +118,6 @@ def post_biome_counts(biomes: BiomeCounts):
                     sqlalchemy.text(insert_query),
                     [{"biome_name": biome_name} for biome_name, in insert_data]
                 )
-        endtime = datetime.datetime.now()
-        runtime = endtime - start_time
-        print("eco/biomes runtime: " + str(runtime))
 
         return {"message": "Biome counts recorded successfully"}
     except Exception as e:
@@ -193,10 +182,7 @@ def spawn_entity(entity_to_spawn: list[Entity]):
     Will only create new entities if they don't already exist in the specified biome.
     Returns early if no entities are provided.
     """
-
-    start_time = datetime.datetime.now()
    
-    
     if not entity_to_spawn:
         return {
             "message": "No entities provided to spawn",
@@ -261,12 +247,6 @@ def spawn_entity(entity_to_spawn: list[Entity]):
         ]
         
         connection.execute(sqlalchemy.text(insert_query), entity_list)
-
-    
-    endtime = datetime.datetime.now()
-    runtime = endtime - start_time
-    print("eco/entity runtime: " + str(runtime)) 
-
 
     return {
         "message": "Entities successfully spawned",
@@ -335,7 +315,6 @@ def biome_prey(biome_id: int):
     Returns the id and nourishment of prey in the requested biome.
     """
 
-    start_time = datetime.datetime.now()
    
     with db.engine.begin() as connection:
         biome_check_query = """
@@ -372,9 +351,6 @@ def biome_prey(biome_id: int):
                 "nourishment": 0
             }
 
-    endtime = datetime.datetime.now()
-    runtime = endtime - start_time
-    print("eco/prey/biome_id runtime: " + str(runtime)) 
     
     return {
         "id": prey.id,
@@ -388,8 +364,6 @@ def biome_predator(biome_id: int):
    """
    Returns a list of predator and their id and nourishment in the requested biome.
    """
-   
-   start_time = datetime.datetime.now()
    
    with db.engine.begin() as connection:
        biome_check_query = """
@@ -425,10 +399,6 @@ def biome_predator(biome_id: int):
                "entity_type": "predators", 
                "nourishment": 0
            }
-    
-   endtime = datetime.datetime.now()
-   runtime = endtime - start_time
-   print("eco/predator/biome_id runtime: " + str(runtime)) 
     
    return {
        "id": predator.id,
@@ -567,9 +537,7 @@ def check_disaster():
     """
     Has a chance to cause a random disaster, increases chance of disaster by 2% until one occurs.
     When a disaster occurs, up to 5 villagers can be killed.
-    """
-    start_time = datetime.datetime.now()
-   
+    """   
 
     global disaster_counter
     
@@ -647,10 +615,6 @@ def check_disaster():
 
                     deleted = len(result.fetchall())
             
-            
-            endtime = datetime.datetime.now()
-            runtime = endtime - start_time
-            print("eco/disaster TRUE runtime: " + str(runtime)) 
     
             return {
                 "message": f"Disaster occurred: {disaster_type}",
@@ -660,9 +624,6 @@ def check_disaster():
         else:
             disaster_counter += 1
 
-            endtime = datetime.datetime.now()
-            runtime = endtime - start_time
-            print("eco/disaster FALSE runtime: " + str(runtime)) 
     
             return {
                 "message": "No disaster occurred",

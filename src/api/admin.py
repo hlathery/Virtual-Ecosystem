@@ -3,7 +3,6 @@ from pydantic import BaseModel
 from src.api import auth
 from src import database as db
 import sqlalchemy
-import datetime
 
 router = APIRouter(
     prefix="/admin",
@@ -16,8 +15,6 @@ def reset():
     """
     Resets all data in user inventory, village, and ecosystem to default values.
     """
-    # In format HH:MM:SS.mS
-    start_time = datetime.datetime.now()
 
     with db.engine.begin() as connection:
         

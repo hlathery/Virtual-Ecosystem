@@ -4,7 +4,7 @@ from src.api import auth
 import sqlalchemy
 from src import database as db
 from enum import Enum
-import datetime
+
 
 router = APIRouter(
     prefix="/village",
@@ -55,10 +55,6 @@ def get_village_overview():
         buildings_name.append(row.name)
         buildings_count.append(row.quantity)
 
-    
-    endtime = datetime.datetime.now()
-    runtime = endtime - start_time
-    print("village/ runtime: " + str(runtime))
 
     return {
                 "buildings": buildings_name,
@@ -91,9 +87,6 @@ def catalog():
             types.append(row.type)
             costs.append(row.price)
     
-    endtime = datetime.datetime.now()
-    runtime = endtime - start_time
-    print("village/catalog runtime: " + str(runtime))
 
     return {
             "buildings": types,
@@ -126,10 +119,6 @@ def create_villager(amount: int):
 
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text(insert_query), update_list)
-    
-    endtime = datetime.datetime.now()
-    runtime = endtime - start_time
-    print("PUT village/villager runtime: " + str(runtime))
 
     return f"{amount} villager(s) succesfully created"
 
@@ -162,11 +151,6 @@ def remove_villager(amount: int):
                                 """
         connection.execute(sqlalchemy.text(kill_villager_query),{"num": amount})
     
-    
-    endtime = datetime.datetime.now()
-    runtime = endtime - start_time
-    print("DELETE village/villager runtime: " + str(runtime))
-
     return f"{amount} villager(s) succesfully removed"
 
 
@@ -187,11 +171,6 @@ def update_villager():
                                 """
         connection.execute(sqlalchemy.text(update_villager_query),{'water':water,'food':food})
         connection.execute(sqlalchemy.text("UPDATE villagers SET nourishment = 100 WHERE nourishment > 100"))
-
-    
-    endtime = datetime.datetime.now()
-    runtime = endtime - start_time
-    print("village/villager_update runtime: " + str(runtime))
 
     # Make sure you can't take more than available
     return "Villagers consumed food and water"  # PLACEHOLDER
@@ -223,10 +202,6 @@ def build_structure(buildings: list[Building]):
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text("UPDATE buildings SET quantity = quantity + :amount WHERE name = :name"), update_list)
 
-    endtime = datetime.datetime.now()
-    runtime = endtime - start_time
-    print("village/building runtime: " + str(runtime))
-
     # return f"{buildings_sum} structure(s) built"
     return f"Structures built: {update_list}"
 
@@ -236,7 +211,6 @@ def adjust_storage(storages: list[BuildingStorage]):
     """
     Adjusts storage amounts in buildings based off certain game logic (make quantity values + or - as desired)
     """
-    start_time = datetime.datetime.now()
 
     if len(storages) == 0:
         return {"error": "Must provide resources to adjust!"}
@@ -273,11 +247,6 @@ def adjust_storage(storages: list[BuildingStorage]):
 
         connection.execute(sqlalchemy.text(storage_update_query), update_list)
 
-    
-    endtime = datetime.datetime.now()
-    runtime = endtime - start_time
-    print("village/inventory runtime: " + str(runtime))
-
     return "Storage updated successfully!"
 
 
@@ -287,7 +256,6 @@ def view_village_inventory():
     """
     Returns a list of all village resources and how much of that resource is available.
     """
-    start_time = datetime.datetime.now()
 
     with db.engine.begin() as connection:
         query = """
@@ -303,8 +271,5 @@ def view_village_inventory():
         resource_list.append({"resource_name" : item.resource,
                                 "quantity" : item.quantity})
 
-    endtime = datetime.datetime.now()
-    runtime = endtime - start_time
-    print("village/village_inventory runtime: " + str(runtime))
 
     return resource_list

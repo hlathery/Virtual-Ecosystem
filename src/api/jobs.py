@@ -5,7 +5,6 @@ from src import database as db
 from enum import Enum
 import sqlalchemy
 from fastapi import HTTPException, status
-import datetime
 
 router = APIRouter(
     prefix="/jobs",
@@ -33,7 +32,6 @@ def get_job_list():
     """
     Returns a list of all jobs and the amount of active workers at each job.
     """
-    start_time = datetime.datetime.now()
 
     with db.engine.begin() as connection:
 
@@ -56,9 +54,6 @@ def get_job_list():
             }
         )
     
-    endtime = datetime.datetime.now()
-    runtime = endtime - start_time
-    print("jobs/ runtime: " + str(runtime)) 
 
     return job_list
 
@@ -68,7 +63,6 @@ def assign_villager(job_list: list[Jobs]):
     Takes a number of unassigned villagers and gives them a job.
     """
     
-    start_time = datetime.datetime.now()
     
     sum = 0
     # checks for negative values
