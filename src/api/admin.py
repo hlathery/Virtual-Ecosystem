@@ -29,16 +29,16 @@ def reset():
                     DELETE FROM storage;
 
                     INSERT INTO storage (resource_name, quantity, building_id) 
-                    VALUES 
+                    VALUES
                         :wood, 
                         :food, 
                         :water;
                     
                     DELETE FROM villagers;
 
-                    UPDATE buildings SET quantity = 1 WHERE id = 0 OR id = 1;
+                    UPDATE buildings SET quantity = 0;
 
-                    UPDATE buildings SET quantity = 0 WHERE id != 0 OR id != 1
+                    UPDATE buildings SET quantity = 1 WHERE id = 0 OR id = 1
                 """
         # ['resource_name', quantity, building_id] , 0 in this case points to starter town hall
         default_wood = ['wood', 100, 0] 
@@ -49,9 +49,5 @@ def reset():
                                                     "food": tuple(default_food),
                                                     "water": tuple(default_water)})
     
-    endtime = datetime.datetime.now()
-    runtime = endtime - start_time
-    print("admin/reset runtime: " + str(runtime))
 
     return "Reset Complete"
-
