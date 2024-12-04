@@ -273,11 +273,6 @@ def update_nourishment(entity_updates: list[EntityUpdate]):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Negative ID not allowed: {update.id}"
             )
-        elif update.nourishment < 0:
-            raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Nourishment must be between 0 and 100 inclusive: {update.id}"
-                )
     
     update_list = [
         {
