@@ -127,13 +127,13 @@ class WorldDrawer:
         x = 600
         y = 250
         option = "Catalog"
-        build = []
         job_list = requests.get("http://127.0.0.1:3000/jobs/", headers=self.get_headers).json()
         overview = requests.get("http://127.0.0.1:3000/village/", headers=self.get_headers).json()
         catalog_list = requests.get("http://127.0.0.1:3000/village/catalog", headers=self.get_headers).json()
         eco = requests.get("http://127.0.0.1:3000/eco/", headers=self.get_headers).json()
         resources = requests.get("http://127.0.0.1:3000/village/village_inventory", headers=self.get_headers).json()
         while menu:
+            build = []
             menu = pygame.Rect(x, y, 400, 600)
             pygame.draw.rect(self.display_surface, (0,0,0), menu)
             self.draw_text("DECISION MENU", (255,255,255), x+150, y)
